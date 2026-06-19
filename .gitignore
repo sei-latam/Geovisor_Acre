@@ -1,0 +1,13 @@
+# Ignorar carpetas y archivos pesados de simulación
+*.tif
+*.tiff
+*.shp
+*.dbf
+*.shx
+*.prj
+
+# Ignorar variables de entorno con contraseñas
+.env
+
+# Ignorar temporales de Python
+__pycache__/
