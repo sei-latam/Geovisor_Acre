@@ -4,7 +4,30 @@ Importación de archivos GIS y creación de una Base de Datos Espaciales (BDE)
 
 --- Pasos Generales
 --- 1.0 Registre un nuevo servidor, por ejemplo 'GeovisorTest'
---- 2.0 Creación de un nuevo rol, por ejemplo 'administrador' con contraseña 'xxxxxx' y asignarle los permisos necesarios para administrar la base de datos.
+
+--- 2.0 Creación de una base de datos, por ejemplo 'geovisor_db' 
+CREATE DATABASE "geovisor-db"
+    WITH
+    OWNER = postgres
+    ENCODING = 'UTF8'
+    LOCALE_PROVIDER = 'libc'
+    CONNECTION LIMIT = -1
+    IS_TEMPLATE = False;
+
+--- 3.0 Creación de un schema en la base de datos, por ejemplo 'geovisor_data'
+---- (opcional) puede usarse el schema public o topology.
+CREATE SCHEMA geovisor_data AUTHORIZATION postgres;
+
+--- 4.0 Creación de las extensiones de GIS (PostGIS)
+create EXTENSION postgis;
+create EXTENSION fuzzystrmatch;
+create EXTENSION postgis_raster;
+create EXTENSION postgis_topology;
+create EXTENSION postgis_sfcgal;
+create EXTENSION postgis_tiger_geocoder;
+
+	
+--- 5.0 Creación de un nuevo rol, por ejemplo 'administrador' con contraseña 'xxxxxx' y asignarle los permisos necesarios para administrar la base de datos.
 CREATE ROLE administrador WITH
 	LOGIN
 	NOSUPERUSER
@@ -15,7 +38,6 @@ CREATE ROLE administrador WITH
 	BYPASSRLS
 	CONNECTION LIMIT -1
 	PASSWORD 'xxxxxx';
-
 /*
 Permisos especiales requeridos para la inserción de las tablas de manchas de inundación y niveles de rios.
 En este caso se utiliza el rol de administrador, pero en caso de errores se puede utilizar el root de postgres que por defecto funciona
@@ -36,27 +58,7 @@ GRANT ALL PRIVILEGES ON TABLES TO administrador;
 
 ALTER DEFAULT PRIVILEGES IN SCHEMA geovisor_data 
 GRANT ALL PRIVILEGES ON SEQUENCES TO administrador;
-
---- 3.0 Creación de una base de datos, por ejemplo 'geovisor_db' 
-CREATE DATABASE "geovisor-db"
-    WITH
-    OWNER = administrador
-    ENCODING = 'UTF8'
-    LOCALE_PROVIDER = 'libc'
-    CONNECTION LIMIT = -1
-    IS_TEMPLATE = False;
-
---- 4.0 Creación de un schema en la base de datos, por ejemplo 'geovisor_data'
----- (opcional) puede usarse el schema public o topology.
-CREATE SCHEMA geovisor_data AUTHORIZATION administrador;
 	
---- 5.0 Creación de las extensiones de GIS (PostGIS)
-create EXTENSION postgis;
-create EXTENSION fuzzystrmatch;
-create EXTENSION postgis_raster;
-create EXTENSION postgis_topology;
-create EXTENSION postgis_sfcgal;
-create EXTENSION postgis_tiger_geocoder;
 
 -- 6.0 Creación de la tabla maestra de niveles de ríos
 CREATE TABLE IF NOT EXISTS geovisor_data.nivel_rios (id_nivel_rios SERIAL PRIMARY KEY, nivel_rios INTEGER NOT NULL UNIQUE);
