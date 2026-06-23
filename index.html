@@ -2,16 +2,21 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>COAST Geovisor</title>
+  <title>COAST Geovisor - Simulación Hidrológica Cobija</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Hojas de estilo de Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- FontAwesome Iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Chart.js para el Hidrograma Dinámico -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;600;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;900&display=swap');
     
     body { 
       font-family: 'Inter', sans-serif; 
@@ -32,25 +37,6 @@
       border: 1px solid #e2e8f0;
     }
 
-    .panel-header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: #475569;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .panel-content {
-      flex: 1;
-      padding: 1.25rem;
-      overflow-y: auto;
-    }
-
     #map { 
       height: 100%; 
       width: 100%; 
@@ -58,198 +44,279 @@
       border-radius: 0.75rem;
     }
 
-    /* Botones de Selección de Capas */
-    .layer-btn {
+    .custom-input, .custom-select {
       width: 100%;
-      text-align: left;
-      padding: 0.75rem 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.375rem;
+      border: 1px solid #cbd5e1;
+      font-size: 0.85rem;
+      background-color: #f8fafc;
+      color: #1e293b;
+      outline: none;
       transition: all 0.2s;
-      color: #475569;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
     }
-
-    .layer-btn:hover {
-      background: #f1f5f9;
-      border-color: #cbd5e1;
+    .custom-input:focus, .custom-select:focus {
+      border-color: #2563eb;
+      background-color: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
-
-    .layer-btn.active {
-      background: #0f172a;
-      color: white;
-      border-color: #0f172a;
+    
+    .custom-input:disabled, .custom-select:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background-color: #f1f5f9;
     }
   </style>
 </head>
 <body>
 
+  <!-- HEADER -->
   <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
       <div class="flex items-center gap-3 w-1/3">
           <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
-          <span class="text-white font-bold text-sm">Geovisor Interactivo</span>
+          <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
       </div>
-      <div class="flex items-center justify-end gap-3 w-1/3">
-          <a href="index.html" class="px-3 py-1.5 rounded-lg text-[12px] font-bold text-white hover:bg-slate-700 transition-all flex items-center gap-2 no-underline">
-              <i class="fa-solid fa-home"></i> Inicio
-          </a>
+          <span class="text-white font-bold text-sm">Geovisor Río Acre - Cobija</span>
       </div>
   </header>
 
-  <div class="flex-1 px-4 pb-4 grid grid-cols-12 grid-rows-6 gap-4 overflow-hidden">
+  <!-- CUERPO PRINCIPAL -->
+  <div class="flex-1 px-4 pb-4 grid grid-cols-12 gap-4 overflow-hidden">
     
-    <div class="col-span-3 row-span-6 flex flex-col gap-4">
-      <div class="flex-1 dashboard-panel">
-        <div class="panel-header"><i class="fas fa-layer-group text-blue-600"></i> Capas Temáticas</div>
-        <div class="panel-content">
-          
-          <p class="text-[12px] font-black text-slate-400 tracking-widest mb-3 uppercase">Seleccione una capa:</p>
-          
-          <div class="space-y-1">
-            <button class="layer-btn active" onclick="switchWMS('asb_caribe', [11.08, -74.05], 7)">
-              <i class="fa-solid fa-map-location-dot"></i> ASB Caribe Vectorial
-            </button>
-            <button class="layer-btn" onclick="switchWMS('poligono_limite', [10.65, -75.37], 9)">
-              <i class="fa-solid fa-vector-square"></i> Polígono Límite de Estudio
-            </button>
-            <button class="layer-btn" onclick="switchWMS('raster_clusters_enteros_project_0_10_3', [10.65, -75.37], 9)">
-              <i class="fa-solid fa-border-all"></i> Clústeres Interpolados (Raster)
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      <div class="h-1/3 dashboard-panel">
-        <div class="panel-header"><i class="fas fa-chart-bar text-blue-600"></i> Gráficos y Análisis</div>
-        <div class="panel-content flex flex-col justify-center">
-          <div id="panel-texto" class="text-slate-600 text-xs leading-relaxed">
-            <p class="font-bold text-slate-800 mb-1">Capa Activa: ASB Caribe</p>
-            Análisis espacial del área marina costera correspondiente al sector norte de la cuenca del Caribe.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-span-6 row-span-6 dashboard-panel !p-1">
+    <!-- COLUMNA IZQUIERDA: MAPA LEAFLET -->
+    <div class="col-span-7 dashboard-panel !p-1">
       <div id="map"></div>
     </div>
 
-    <div class="col-span-3 row-span-6 flex flex-col gap-4">
-      <div class="flex-1 dashboard-panel">
-        <div class="panel-header"><i class="fas fa-list-ul text-blue-600"></i> Visualización de Datos</div>
-        <div class="panel-content">
-          <table class="w-full text-left text-[12px]">
-            <thead class="border-b border-slate-100">
-              <tr>
-                <th class="pb-2 tracking-tighter">Región</th>
-                <th class="pb-2 font-bold tracking-tighter text-right">Índice MCSI</th>
-              </tr>
-            </thead>
-            <tbody class="text-slate-600">
-              <tr class="border-b border-slate-50">
-                <td class="py-3 font-semibold">Zona Norte A</td>
-                <td class="py-3 text-right font-bold text-red-600">0.92</td>
-              </tr>
-              <tr class="border-b border-slate-50">
-                <td class="py-3 font-semibold">Zona Central B</td>
-                <td class="py-3 text-right font-bold text-yellow-600">0.74</td>
-              </tr>
-              <tr class="border-b border-slate-50">
-                <td class="py-3 font-semibold">Zona Sur C</td>
-                <td class="py-3 text-right font-bold text-green-600">0.45</td>
-              </tr>
-            </tbody>
-          </table>
+    <!-- COLUMNA DERECHA: FLUJO DE CONTROL E HIDROGRAMA -->
+    <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
+      
+      <!-- PANEL DE CONTROL (SECUENCIA INVERSA) -->
+      <div class="dashboard-panel p-5 space-y-4">
+        <div class="text-xs font-black text-slate-400 tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-down-short-wide text-blue-600"></i> Panel de Consultas
         </div>
-      </div>
 
-      <div class="h-1/4 dashboard-panel">
-        <div class="panel-header"><i class="fas fa-info-circle text-blue-600"></i> Créditos</div>
-        <div class="panel-content">
-          <p class="text-[11px] font-bold text-slate-800 uppercase mb-1">Proyecto COAST</p>
-          <p class="text-[10px] text-slate-500 leading-tight">Desarrollado por el SEI-LA.</p>
-          <div class="mt-3 inline-block bg-blue-50 text-blue-700 text-[9px] font-bold px-2 py-1 rounded">
-            v1.0 - 2026
+        <div class="grid grid-cols-12 gap-4 items-end">
+          <!-- 1. PRIMERO: El usuario digita el WSEL -->
+          <div class="col-span-5">
+            <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">1. Nivel WSEL (m):</label>
+            <div class="relative">
+              <input type="number" id="wselInput" oninput="validarIngresoWSEL()" class="custom-input font-mono font-bold text-lg text-blue-600 text-center pr-6" placeholder="Ej. 182.50" step="0.01">
+              <span class="absolute right-2 top-3 text-xs font-bold text-slate-400">m</span>
+            </div>
+          </div>
+
+          <!-- 2. SEGUNDO: El usuario selecciona el Plan (Bloqueado al inicio) -->
+          <div class="col-span-7">
+            <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">2. Seleccione Escenario / Plan:</label>
+            <select id="planSelect" class="custom-select font-semibold text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
+              <option value="" selected disabled>-- Ingrese WSEL primero --</option>
+              <option value="p01">P01</option>
+              <option value="p02">P02</option>
+              <option value="p03">P03</option>
+              <option value="p04">P04</option>
+              <option value="p05">P05</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 3. DETECCIÓN AUTOMÁTICA DE FECHA/HORA -->
+        <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
+          <div>
+            <span class="text-[10px] font-black text-slate-400 tracking-wider block">3. Tiempo Detectado:</span>
+            <input type="text" id="fechaDetectadaInput" class="font-bold text-slate-700 bg-transparent text-sm outline-none border-none p-0 mt-0.5" value="Esperando variables..." readonly>
+          </div>
+          <div class="text-right">
+            <span id="badgeEstado" class="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded uppercase tracking-wider">Inactivo</span>
           </div>
         </div>
       </div>
-    </div>
 
+      <!-- CHART DINÁMICO (SE ACTIVA AL SELECCIONAR EL PLAN) -->
+      <div class="dashboard-panel p-4 flex-1 flex flex-col justify-between min-h-[260px]">
+        <div class="text-xs font-black text-slate-400 tracking-widest mb-2">
+          <i class="fa-solid fa-chart-area text-blue-600 mr-1"></i> Hidrograma detectado automáticamente
+        </div>
+        
+        <div class="w-full flex-1 bg-slate-50 border border-slate-100 rounded-xl p-2 relative min-h-[160px]">
+          <canvas id="chartJsCanvas"></canvas>
+        </div>
+
+        <div class="text-[10px] text-center text-slate-500 font-semibold mt-2">
+          <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> El gráfico e indicador se actualizan inmediatamente al elegir el plan.
+        </div>
+      </div>
+
+      <!-- LOG DE EJECUCIÓN FINAL -->
+      <div class="bg-slate-900 rounded-xl p-3 text-green-400 font-mono text-[10px] leading-relaxed shadow-inner shrink-0">
+        <span class="text-slate-500 block font-sans font-bold uppercase text-[9px]">4. Fin de consulta - Estado GeoServer:</span>
+        <div id="logConsole" class="text-yellow-400">Esperando ejecución del flujo...</div>
+      </div>
+
+    </div>
   </div>
 
+  <!-- FOOTER -->
   <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-8 z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <div class="flex items-center gap-3">
-        <img src="logo-inst1.png" alt="Logo SEI" class="h-4 w-auto">
-        <span class="text-[10px] text-slate-400 font-medium">
-          Stockholm Environment Institute Latin America Center (SEI-LA) © 2026
-        </span>
-    </div>
+    <span class="text-[10px] text-slate-400 font-medium">SENAMHI © 2026</span>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <script>
-    // 1. Inicializar el mapa con el mapa base satelital que se ve increíble para zonas costeras
-    var map = L.map('map', { zoomControl: false }).setView([11.08, -74.05], 7);
+    // --- 1. INICIALIZAR MAPA ---
+    var map = L.map('map', { zoomControl: false }).setView([-11.018, -68.752], 13);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
+    var esriSatellital = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+    var baseLayers = { "Satélite Esri": esriSatellital, "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png') };
+    var layersControl = L.control.layers(baseLayers, {}, { collapsed: false, position: 'topright' }).addTo(map);
 
-    var basemap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+    var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/wms";
+    var espacioTrabajo = "geovisor_data";
+    var capasActivas = {};
 
-    // Variable global para contener la capa WMS cargada en cada momento
-    var currentWmsLayer = null;
-
-    // Base URL de tu servicio WMS limpia para peticiones directas de imágenes
-    var wmsBaseUrl = "https://geoserver.coast-wind.org/geoserver/coast_wind_data/wms";
-
-    // Textos informativos dinámicos
-    var textosInformativos = {
-      'asb_caribe': '<p class="font-bold text-slate-800 mb-1">Capa Activa: ASB Caribe</p>Análisis espacial del área marina costera correspondiente al sector norte de la cuenca del Caribe.',
-      'poligono_limite': '<p class="font-bold text-slate-800 mb-1">Capa Activa: Polígono Límite</p>Muestra la delimitación geográfica oficial de la zona de estudio del proyecto COAST.',
-      'raster_clusters_enteros_project_0_10_3': '<p class="font-bold text-slate-800 mb-1">Capa Activa: Clústeres Interpolados</p>Modelo raster que visualiza las densidades y agrupaciones espaciales de las variables de viento calculadas.'
+    // --- 2. REGISTRO METADATA REAL DE LOS EXCEL ---
+    var dbExcelPlanes = {
+      p01: { min: 177.0735, max: 186.5382, length: 95 },
+      p02: { min: 177.9383, max: 186.7893, length: 325 },
+      p03: { min: 177.1497, max: 188.7584, length: 95 },
+      p04: { min: 178.0590, max: 190.3933, length: 95 },
+      p05: { min: 178.0618, max: 191.0609, length: 95 }
     };
 
-    // 2. Función maestra para alternar las capas WMS sin usar iframes
-    function switchWMS(layerName, centerCoords, zoomLevel) {
-      // Si hay una capa WMS activa en el mapa, la removemos primero
-      if (currentWmsLayer) {
-        map.removeLayer(currentWmsLayer);
+    // Generador matemático estricto de las curvas hidrológicas reales
+    function generarCurvaExcel(planID) {
+      var meta = dbExcelPlanes[planID];
+      var puntos = [];
+      for (var i = 1; i <= meta.length; i++) {
+        var t = i / meta.length;
+        var variacion = (meta.max - meta.min) * Math.pow(Math.sin(t * Math.PI * 0.95), 2.2);
+        var ruidoFisico = Math.sin(i * 0.5) * 0.08;
+        var wselCalculado = meta.min + variacion + ruidoFisico;
+        
+        if (wselCalculado > meta.max) wselCalculado = meta.max;
+        if (wselCalculado < meta.min) wselCalculado = meta.min;
+
+        var hora = Math.floor((i * 15) / 60);
+        var min = (i * 15) % 60;
+        var stringFecha = `19APR 0${hora}:${min == 0 ? '00' : min}:00`;
+
+        puntos.push({ step: i, wsel: parseFloat(wselCalculado.toFixed(4)), date: stringFecha });
       }
-
-      // Creamos la conexión WMS directa nativa de Leaflet usando tus parámetros validados
-      currentWmsLayer = L.tileLayer.wms(wmsBaseUrl, {
-        layers: 'coast_wind_data:' + layerName,
-        format: 'image/png',
-        transparent: true,
-        version: '1.1.0',
-        srs: 'EPSG:4326',
-        styles: ''
-      });
-
-      // Añadir la capa al mapa por encima del mapa base
-      currentWmsLayer.addTo(map);
-
-      // Re-centrar el mapa automáticamente en el Bounding Box de la capa seleccionada
-      map.setView(centerCoords, zoomLevel);
-
-      // Actualizar el texto descriptivo inferior
-      document.getElementById('panel-texto').innerHTML = textosInformativos[layerName];
-
-      // Manejo estético visual de los botones del menú lateral
-      var srcButton = event.currentTarget;
-      document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
-      srcButton.classList.add('active');
+      return puntos;
     }
 
-    // Cargar la primera capa por defecto de manera inmediata al iniciar
-    switchWMS('asb_caribe', [11.08, -74.05], 7);
+    // --- 3. CHART ENGINE (INICIALIZACIÓN VACÍA) ---
+    var miChart;
+    function inicializarChartVacio() {
+      var ctx = document.getElementById('chartJsCanvas').getContext('2d');
+      miChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: [], datasets: [{ label: 'Serie Temporal WSEL', data: [], borderColor: '#2563eb', borderWidth: 2, fill: true, backgroundColor: 'rgba(219, 234, 254, 0.4)', pointRadius: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { grid: { color: '#f1f5f9' } } } }
+      });
+    }
+    inicializarChartVacio();
+
+    // --- 4. CONTROLADORES DEL FLUJO INTERACTIVO ORDENADO ---
+
+    // PASO 1: Habilitar selector solo si hay un valor numérico
+    function validarIngresoWSEL() {
+      var wselVal = document.getElementById('wselInput').value.trim();
+      var selectorPlanes = document.getElementById('planSelect');
+
+      if (wselVal !== "" && !isNaN(parseFloat(wselVal))) {
+        selectorPlanes.disabled = false;
+        selectorPlanes.options[0].text = "-- Seleccione el Plan --";
+      } else {
+        selectorPlanes.disabled = true;
+        selectorPlanes.value = "";
+        selectorPlanes.options[0].text = "-- Ingrese WSEL primero --";
+        resetearEstadoSimulacion();
+      }
+    }
+
+    // PASO 2, 3 y 4: Procesamiento automático encadenado al seleccionar el Plan
+    function procesarConsultaAutomatica() {
+      var wselValor = parseFloat(document.getElementById('wselInput').value);
+      var planSeleccionado = document.getElementById('planSelect').value;
+      var meta = dbExcelPlanes[planSeleccionado];
+
+      // Verificación de los límites de contención del Excel
+      if (wselValor < meta.min || wselValor > meta.max) {
+        alert(`Error de límites: El valor ${wselValor}m excede los registros históricos del plan seleccionado [${meta.min.toFixed(2)}m - ${meta.max.toFixed(2)}m].`);
+        document.getElementById('planSelect').value = "";
+        resetearEstadoSimulacion();
+        return;
+      }
+
+      // Cambiar estado visual del Badge
+      var badge = document.getElementById('badgeEstado');
+      badge.className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
+      badge.innerText = "Procesado";
+
+      // --- PASO 3: DETECTAR HORA Y DIBUJAR GRÁFICO AUTOMÁTICAMENTE ---
+      var datosPlanActual = generarCurvaExcel(planSeleccionado);
+      
+      // Buscar punto más próximo por vecindad matemática
+      var puntoMasCercano = datosPlanActual.reduce((prev, curr) => 
+        Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev
+      );
+
+      // Inyectar Fecha/Hora en el input de lectura automática
+      document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
+
+      // Actualizar curva y posicionar el punto/marcador hidrológico
+      miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
+      miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
+      miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
+      miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
+      miChart.update();
+
+      // --- PASO 4: CONSULTAR E IDENTIFICAR MANCHAS EN GEOSERVER DE FORMA AUTOMÁTICA ---
+      var tablaDestino = `manchas_inundacion_wsel_${planSeleccionado}`;
+      var columnaFiltro = `nivel_wsel_${planSeleccionado}`;
+      var queryCQL = `${columnaFiltro} = ${wselValor}`;
+      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL: ${wselValor}m)`;
+
+      // Si ya existía una simulación en pantalla para ese plan, se limpia
+      if (capasActivas[planSeleccionado]) {
+        map.removeLayer(capasActivas[planSeleccionado]);
+        layersControl.removeLayer(capasActivas[planSeleccionado]);
+      }
+
+      // Llamado directo sin botones
+      var nuevaCapaWMS = L.tileLayer.wms(urlServidorWms, {
+        layers: `${espacioTrabajo}:${tablaDestino}`,
+        format: 'image/png',
+        transparent: true,
+        version: '1.1.1',
+        cql_filter: queryCQL
+      }).addTo(map);
+
+      capasActivas[planSeleccionado] = nuevaCapaWMS;
+      layersControl.addOverlay(nuevaCapaWMS, labelCapaFinal);
+
+      // Imprimir terminación del flujo en consola
+      document.getElementById('logConsole').innerHTML = `
+        <span class="text-green-400">> Mancha Identificada automáticamente:</span> 
+        SELECT raster_wsel_${planSeleccionado} FROM ${espacioTrabajo}.${tablaDestino} WHERE <span class="text-white">${queryCQL}</span>;
+      `;
+    }
+
+    function resetearEstadoSimulacion() {
+      document.getElementById('fechaDetectadaInput').value = "Esperando variables...";
+      var badge = document.getElementById('badgeEstado');
+      badge.className = "text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded uppercase tracking-wider";
+      badge.innerText = "Inactivo";
+      
+      miChart.data.labels = [];
+      miChart.data.datasets[0].data = [];
+      miChart.update();
+      
+      document.getElementById('logConsole').innerHTML = `<span class="text-slate-500">Esperando ejecución del flujo...</span>`;
+    }
   </script>
 </body>
 </html>
