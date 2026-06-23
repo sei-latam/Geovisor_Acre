@@ -1,0 +1,19 @@
+.topbar {
+  background-color: #0d3d2a;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 1rem;
+  height: 40px;
+  font-size: 0.9rem;
+}
+.topbar-left { display: flex; align-items: center; gap: 0.5rem; }
+.topbar-logo { height: 28px; width: auto; }
+.topbar-center { flex-grow: 1; text-align: center; font-weight: bold; }
+.topbar-right { display: flex; align-items: center; }
+.topbar-search { display: flex; align-items: center; }
+.topbar-input { height: 26px; padding: 0 0.5rem; border: none; border-radius: 4px 0 0 4px; outline: none; }
+.topbar-button { height: 26px; border: none; background-color: #2e5c44; color: #fff; border-radius: 0 4px 4px 0; padding: 0 0.5rem; cursor: pointer; }
+.topbar-button:hover { background-color: #3b7a5a; }
+#map { height: 600px; width: 100%; border: 2px solid #2e5c44; border-radius: 6px; }

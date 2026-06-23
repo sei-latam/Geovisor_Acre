@@ -80,3 +80,16 @@ CREATE TABLE geovisor_data.manchas_inundacion_velocity (id_velocity SERIAL PRIMA
     raster_vel raster,
     CONSTRAINT fk_velocity_nivel_rios FOREIGN KEY (id_nivel_rios) 
         REFERENCES geovisor_data.nivel_rios (id_nivel_rios) ON DELETE CASCADE);
+
+-- 1. Registrar y empaquetar oficialmente los rásters en el sistema de PostGIS
+SELECT AddRasterConstraints('geovisor_data'::name, 'manchas_inundacion_wsel'::name, 'raster_wsel'::name);
+SELECT AddRasterConstraints('geovisor_data'::name, 'manchas_inundacion_velocity'::name, 'raster_vel'::name);
+
+-- 2. Crear Índices Espaciales (GIST) para que QGIS renderice en milisegundos
+CREATE INDEX idx_manchas_wsel_raster_gist ON geovisor_data.manchas_inundacion_wsel 
+USING gist (st_convexhull(raster_wsel));
+
+CREATE INDEX idx_manchas_vel_raster_gist ON geovisor_data.manchas_inundacion_velocity 
+USING gist (st_convexhull(raster_vel));
+
+		
