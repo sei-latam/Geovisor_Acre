@@ -6,13 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Hojas de estilo de Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <!-- FontAwesome Iconos -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <!-- Chart.js para el Hidrograma Dinámico -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
@@ -70,35 +66,28 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
       <div class="flex items-center gap-3 w-1/3">
           <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
           <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
       </div>
-          <span class="text-white font-bold text-sm">Geovisor Río Acre - Cobija</span>
-      </div>
+      <span class="text-white font-bold text-sm">Geovisor Río Acre - Cobija</span>
   </header>
 
-  <!-- CUERPO PRINCIPAL -->
   <div class="flex-1 px-4 pb-4 grid grid-cols-12 gap-4 overflow-hidden">
     
-    <!-- COLUMNA IZQUIERDA: MAPA LEAFLET -->
     <div class="col-span-7 dashboard-panel !p-1">
       <div id="map"></div>
     </div>
 
-    <!-- COLUMNA DERECHA: FLUJO DE CONTROL E HIDROGRAMA -->
     <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
       
-      <!-- PANEL DE CONTROL (SECUENCIA INVERSA) -->
       <div class="dashboard-panel p-5 space-y-4">
         <div class="text-xs font-black text-slate-400 tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
           <i class="fa-solid fa-arrow-down-short-wide text-blue-600"></i> Panel de Consultas
         </div>
 
         <div class="grid grid-cols-12 gap-4 items-end">
-          <!-- 1. PRIMERO: El usuario digita el WSEL -->
           <div class="col-span-5">
             <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">1. Nivel WSEL (m):</label>
             <div class="relative">
@@ -107,7 +96,6 @@
             </div>
           </div>
 
-          <!-- 2. SEGUNDO: El usuario selecciona el Plan (Bloqueado al inicio) -->
           <div class="col-span-7">
             <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">2. Seleccione Escenario / Plan:</label>
             <select id="planSelect" class="custom-select font-semibold text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
@@ -121,7 +109,6 @@
           </div>
         </div>
 
-        <!-- 3. DETECCIÓN AUTOMÁTICA DE FECHA/HORA -->
         <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
           <div>
             <span class="text-[10px] font-black text-slate-400 tracking-wider block">3. Tiempo Detectado:</span>
@@ -133,7 +120,6 @@
         </div>
       </div>
 
-      <!-- CHART DINÁMICO (SE ACTIVA AL SELECCIONAR EL PLAN) -->
       <div class="dashboard-panel p-4 flex-1 flex flex-col justify-between min-h-[260px]">
         <div class="text-xs font-black text-slate-400 tracking-widest mb-2">
           <i class="fa-solid fa-chart-area text-blue-600 mr-1"></i> Hidrograma detectado automáticamente
@@ -148,7 +134,6 @@
         </div>
       </div>
 
-      <!-- LOG DE EJECUCIÓN FINAL -->
       <div class="bg-slate-900 rounded-xl p-3 text-green-400 font-mono text-[10px] leading-relaxed shadow-inner shrink-0">
         <span class="text-slate-500 block font-sans font-bold uppercase text-[9px]">4. Fin de consulta - Estado GeoServer:</span>
         <div id="logConsole" class="text-yellow-400">Esperando ejecución del flujo...</div>
@@ -157,7 +142,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-8 z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
     <span class="text-[10px] text-slate-400 font-medium">SENAMHI © 2026</span>
   </footer>
@@ -173,10 +157,11 @@
     var layersControl = L.control.layers(baseLayers, {}, { collapsed: false, position: 'topright' }).addTo(map);
 
     var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/wms";
-    var espacioTrabajo = "geovisor_data";
+    var espacioTrabajoReal = "coast_wind_data";
+    var estiloAsignado = "estilo_manchas_inundacion";
     var capasActivas = {};
 
-    // --- 2. REGISTRO METADATA REAL DE LOS EXCEL ---
+    // --- 2. METADATA REAL DE LOS ARCHIVOS EXCEL ---
     var dbExcelPlanes = {
       p01: { min: 177.0735, max: 186.5382, length: 95 },
       p02: { min: 177.9383, max: 186.7893, length: 325 },
@@ -185,7 +170,7 @@
       p05: { min: 178.0618, max: 191.0609, length: 95 }
     };
 
-    // Generador matemático estricto de las curvas hidrológicas reales
+    // Generador matemático preciso de las curvas hidrológicas
     function generarCurvaExcel(planID) {
       var meta = dbExcelPlanes[planID];
       var puntos = [];
@@ -198,16 +183,21 @@
         if (wselCalculado > meta.max) wselCalculado = meta.max;
         if (wselCalculado < meta.min) wselCalculado = meta.min;
 
-        var hora = Math.floor((i * 15) / 60);
-        var min = (i * 15) % 60;
-        var stringFecha = `19APR 0${hora}:${min == 0 ? '00' : min}:00`;
+        // CÁLCULO ESTÁNDAR DEL AVANCE DEL TIEMPO (Cada paso incrementa 15 minutos exactos)
+        var totalMinutos = (i - 1) * 15;
+        var hora = Math.floor(totalMinutos / 60);
+        var min = totalMinutos % 60;
+        
+        var horaStr = String(hora).padStart(2, '0');
+        var minStr = String(min).padStart(2, '0');
+        var stringFecha = `19APR ${horaStr}:${minStr}:00`;
 
         puntos.push({ step: i, wsel: parseFloat(wselCalculado.toFixed(4)), date: stringFecha });
       }
       return puntos;
     }
 
-    // --- 3. CHART ENGINE (INICIALIZACIÓN VACÍA) ---
+    // --- 3. CHART ENGINE (INICIALIZACIÓN) ---
     var miChart;
     function inicializarChartVacio() {
       var ctx = document.getElementById('chartJsCanvas').getContext('2d');
@@ -219,9 +209,8 @@
     }
     inicializarChartVacio();
 
-    // --- 4. CONTROLADORES DEL FLUJO INTERACTIVO ORDENADO ---
+    // --- 4. CONTROLADORES DEL FLUJO INTERACTIVO ---
 
-    // PASO 1: Habilitar selector solo si hay un valor numérico
     function validarIngresoWSEL() {
       var wselVal = document.getElementById('wselInput').value.trim();
       var selectorPlanes = document.getElementById('planSelect');
@@ -237,13 +226,11 @@
       }
     }
 
-    // PASO 2, 3 y 4: Procesamiento automático encadenado al seleccionar el Plan
     function procesarConsultaAutomatica() {
       var wselValor = parseFloat(document.getElementById('wselInput').value);
       var planSeleccionado = document.getElementById('planSelect').value;
       var meta = dbExcelPlanes[planSeleccionado];
 
-      // Verificación de los límites de contención del Excel
       if (wselValor < meta.min || wselValor > meta.max) {
         alert(`Error de límites: El valor ${wselValor}m excede los registros históricos del plan seleccionado [${meta.min.toFixed(2)}m - ${meta.max.toFixed(2)}m].`);
         document.getElementById('planSelect').value = "";
@@ -251,57 +238,65 @@
         return;
       }
 
-      // Cambiar estado visual del Badge
       var badge = document.getElementById('badgeEstado');
       badge.className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
       badge.innerText = "Procesado";
 
-      // --- PASO 3: DETECTAR HORA Y DIBUJAR GRÁFICO AUTOMÁTICAMENTE ---
       var datosPlanActual = generarCurvaExcel(planSeleccionado);
       
-      // Buscar punto más próximo por vecindad matemática
+      // Buscar punto más cercano en el hidrograma
       var puntoMasCercano = datosPlanActual.reduce((prev, curr) => 
         Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev
       );
 
-      // Inyectar Fecha/Hora en el input de lectura automática
       document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
 
-      // Actualizar curva y posicionar el punto/marcador hidrológico
       miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
       miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
       miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
       miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
       miChart.update();
 
-      // --- PASO 4: CONSULTAR E IDENTIFICAR MANCHAS EN GEOSERVER DE FORMA AUTOMÁTICA ---
-      var tablaDestino = `manchas_inundacion_wsel_${planSeleccionado}`;
-      var columnaFiltro = `nivel_wsel_${planSeleccionado}`;
-      var queryCQL = `${columnaFiltro} = ${wselValor}`;
-      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL: ${wselValor}m)`;
+      // --- TRADUCCIÓN EXACTA AL FORMATO REAL DE GEOSERVER ---
+      // Forzar que el prefijo del paso tenga siempre DOS dígitos (ej: 01, 02, 03) para coincidir con la previsualización
+      var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
+      
+      // Descomponer "19APR 00:15:00"
+      var partesFecha = puntoMasCercano.date.split(" "); 
+      var diaMes = partesFecha[0]; // "19APR"
+      var horaMinSeg = partesFecha[1]; // "00:15:00"
+      
+      // Reemplazar ":" por "_" -> "00_15_00"
+      var horaLimpia = horaMinSeg.replace(/:/g, "_");
+      
+      // Construcción unificada con el año indexado en el servidor: "19APR2026_00_15_00"
+      var cadenaFechaFinal = `${diaMes}2026_${horaLimpia}`;
+      
+      // Estructura idéntica: WSE_02_19APR2026_00_15_00_p01
+      var nombreCapaGeoTIFF = `WSE_${numeroPasoFormateado}_${cadenaFechaFinal}_${planSeleccionado}`;
+      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL aproximado: ${puntoMasCercano.wsel}m)`;
 
-      // Si ya existía una simulación en pantalla para ese plan, se limpia
+      // Limpieza del mapa antes de sobreponer la capa simulada
       if (capasActivas[planSeleccionado]) {
         map.removeLayer(capasActivas[planSeleccionado]);
         layersControl.removeLayer(capasActivas[planSeleccionado]);
       }
 
-      // Llamado directo sin botones
+      // Llamado WMS directo respetando mayúsculas y minúsculas exactas del workspace
       var nuevaCapaWMS = L.tileLayer.wms(urlServidorWms, {
-        layers: `${espacioTrabajo}:${tablaDestino}`,
+        layers: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
         format: 'image/png',
         transparent: true,
         version: '1.1.1',
-        cql_filter: queryCQL
+        styles: `${espacioTrabajoReal}:${estiloAsignado}`
       }).addTo(map);
 
       capasActivas[planSeleccionado] = nuevaCapaWMS;
       layersControl.addOverlay(nuevaCapaWMS, labelCapaFinal);
 
-      // Imprimir terminación del flujo en consola
       document.getElementById('logConsole').innerHTML = `
-        <span class="text-green-400">> Mancha Identificada automáticamente:</span> 
-        SELECT raster_wsel_${planSeleccionado} FROM ${espacioTrabajo}.${tablaDestino} WHERE <span class="text-white">${queryCQL}</span>;
+        <span class="text-green-400">> Ráster cargado con éxito:</span> 
+        Capa: <span class="text-white">${espacioTrabajoReal}:${nombreCapaGeoTIFF}</span>
       `;
     }
 
@@ -314,6 +309,14 @@
       miChart.data.labels = [];
       miChart.data.datasets[0].data = [];
       miChart.update();
+      
+      for (var plan in capasActivas) {
+         if (capasActivas[plan]) {
+            map.removeLayer(capasActivas[plan]);
+            layersControl.removeLayer(capasActivas[plan]);
+         }
+      }
+      capasActivas = {};
       
       document.getElementById('logConsole').innerHTML = `<span class="text-slate-500">Esperando ejecución del flujo...</span>`;
     }

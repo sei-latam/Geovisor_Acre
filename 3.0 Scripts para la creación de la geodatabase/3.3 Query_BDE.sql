@@ -1,7 +1,7 @@
 ---9.0 Consultas generales de las tablas
 
-SELECT * FROM geovisor_data.nivel_rios ORDER BY id_nivel_rios ASC; 
-SELECT * FROM geovisor_data.manchas_inundacion_wsel ORDER BY id_wsel ASC;
+SELECT * FROM geovisor_data.nivel_wsel_tm ORDER BY nivel_wsel ASC; 
+SELECT * FROM geovisor_data.manchas_inundacion_wsel_p01 ORDER BY nivel_wsel_p01 ASC;
 SELECT * FROM geovisor_data.manchas_inundacion_velocity ORDER BY id_velocity ASC;
 
 SELECT id_nivel_rios, COUNT(*) as total_rasters FROM geovisor_data.manchas_inundacion_wsel GROUP BY id_nivel_rios ORDER BY id_nivel_rios;

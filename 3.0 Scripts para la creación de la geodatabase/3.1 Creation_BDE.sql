@@ -60,36 +60,80 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA geovisor_data
 GRANT ALL PRIVILEGES ON SEQUENCES TO administrador;
 	
 
--- 6.0 Creación de la tabla maestra de niveles de ríos
-CREATE TABLE IF NOT EXISTS geovisor_data.nivel_rios (id_nivel_rios SERIAL PRIMARY KEY, nivel_rios INTEGER NOT NULL UNIQUE);
+-- 6.0 Creación de la tabla maestra de niveles de ríos WSEL
+CREATE TABLE IF NOT EXISTS geovisor_data.nivel_wsel_tm (
+    id_nivel_wsel SERIAL PRIMARY KEY, 
+    nivel_wsel NUMERIC(10,4) NOT NULL,
+    plan CHAR(3) NOT NULL,
+    CONSTRAINT uq_nivel_plan UNIQUE (nivel_wsel, plan) 
+);
 
----6.1 Eliminación de la tabla maestra de niveles de ríos (opcional)
----DROP TABLE IF EXISTS geovisor_data.nivel_rios;
+---DROP TABLE IF EXISTS geovisor_data.nivel_wsel_tm;
 
--- 7.0 Creación de la tabla para almacenar las manchas de inundación de WSEL (Water Surface Elevation)
-CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel (id_wsel SERIAL PRIMARY KEY, fecha_data TIMESTAMP, id_nivel_rios INTEGER,
-    raster_wsel raster,
-    CONSTRAINT fk_wsel_nivel_rios FOREIGN KEY (id_nivel_rios) 
-        REFERENCES geovisor_data.nivel_rios (id_nivel_rios) ON DELETE CASCADE);
+-- 7.0 Creación de la tablas para almacenar las manchas de inundación de WSEL por planes (p01, p02, p03, p04 y p05) 
 
----7.1 Eliminación de la tabla maestra de manchas de inundación wsel (opcional)
----DROP TABLE IF EXISTS geovisor_data.manchas_inundacion_wsel;
+-- 7.1 Plan p01
+CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel_p01 (
+    id_wsel_p01 SERIAL PRIMARY KEY, 
+    fecha_data_p01 TIMESTAMP, 
+    nivel_wsel_p01 NUMERIC(10,4) NOT NULL, 
+    plan_p01 CHAR(3) NOT NULL,
+    raster_wsel_p01 raster,
+    -- Corregido: Vincula los dos campos juntos a la restricción única compuesta
+    CONSTRAINT fk_nivel_wsel_01 FOREIGN KEY (nivel_wsel_p01, plan_p01) 
+        REFERENCES geovisor_data.nivel_wsel_tm (nivel_wsel, plan) ON DELETE CASCADE
+);
+
+-- 7.2 Plan p02
+CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel_p02 (
+    id_wsel_p02 SERIAL PRIMARY KEY, 
+    fecha_data_p02 TIMESTAMP, 
+    nivel_wsel_p02 NUMERIC(10,4) NOT NULL, 
+    plan_p02 CHAR(3) NOT NULL,
+    raster_wsel_p02 raster,
+    CONSTRAINT fk_nivel_wsel_02 FOREIGN KEY (nivel_wsel_p02, plan_p02) 
+        REFERENCES geovisor_data.nivel_wsel_tm (nivel_wsel, plan) ON DELETE CASCADE
+);
+
+-- 7.3 Plan p03
+CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel_p03 (
+    id_wsel_p03 SERIAL PRIMARY KEY, 
+    fecha_data_p03 TIMESTAMP, 
+    nivel_wsel_p03 NUMERIC(10,4) NOT NULL, 
+    plan_p03 CHAR(3) NOT NULL,
+    raster_wsel_p03 raster,
+    CONSTRAINT fk_nivel_wsel_03 FOREIGN KEY (nivel_wsel_p03, plan_p03) 
+        REFERENCES geovisor_data.nivel_wsel_tm (nivel_wsel, plan) ON DELETE CASCADE
+);
+
+-- 7.4 Plan p04
+CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel_p04 (
+    id_wsel_p04 SERIAL PRIMARY KEY, 
+    fecha_data_p04 TIMESTAMP, 
+    nivel_wsel_p04 NUMERIC(10,4) NOT NULL, 
+    plan_p04 CHAR(3) NOT NULL,
+    raster_wsel_p04 raster,
+    CONSTRAINT fk_nivel_wsel_04 FOREIGN KEY (nivel_wsel_p04, plan_p04) 
+        REFERENCES geovisor_data.nivel_wsel_tm (nivel_wsel, plan) ON DELETE CASCADE
+);
+
+-- 7.5 Plan p05
+CREATE TABLE IF NOT EXISTS geovisor_data.manchas_inundacion_wsel_p05 (
+    id_wsel_p05 SERIAL PRIMARY KEY, 
+    fecha_data_p05 TIMESTAMP, 
+    nivel_wsel_p05 NUMERIC(10,4) NOT NULL, 
+    plan_p05 CHAR(3) NOT NULL,
+    raster_wsel_p05 raster,
+    CONSTRAINT fk_nivel_wsel_05 FOREIGN KEY (nivel_wsel_p05, plan_p05) 
+        REFERENCES geovisor_data.nivel_wsel_tm (nivel_wsel, plan) ON DELETE CASCADE
+);
+
+
 
 ---8.0 Creación de la tabla para almacenar las manchas de inundación de velocity (Face Velocity)
 CREATE TABLE geovisor_data.manchas_inundacion_velocity (id_velocity SERIAL PRIMARY KEY, fecha_data TIMESTAMP, id_nivel_rios INTEGER,
     raster_vel raster,
     CONSTRAINT fk_velocity_nivel_rios FOREIGN KEY (id_nivel_rios) 
         REFERENCES geovisor_data.nivel_rios (id_nivel_rios) ON DELETE CASCADE);
-
--- 1. Registrar y empaquetar oficialmente los rásters en el sistema de PostGIS
-SELECT AddRasterConstraints('geovisor_data'::name, 'manchas_inundacion_wsel'::name, 'raster_wsel'::name);
-SELECT AddRasterConstraints('geovisor_data'::name, 'manchas_inundacion_velocity'::name, 'raster_vel'::name);
-
--- 2. Crear Índices Espaciales (GIST) para que QGIS renderice en milisegundos
-CREATE INDEX idx_manchas_wsel_raster_gist ON geovisor_data.manchas_inundacion_wsel 
-USING gist (st_convexhull(raster_wsel));
-
-CREATE INDEX idx_manchas_vel_raster_gist ON geovisor_data.manchas_inundacion_velocity 
-USING gist (st_convexhull(raster_vel));
 
 		
