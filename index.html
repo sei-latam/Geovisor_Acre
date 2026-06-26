@@ -6,63 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   
+  <link rel="stylesheet" href="style.css">
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght=400;500;600;700;900&display=swap');
-    
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background-color: #e7ebee; 
-      height: 100vh;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .dashboard-panel {
-      background: #ffffff;
-      border-radius: 1rem;
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-      border: 1px solid #e2e8f0;
-    }
-
-    #map { 
-      height: 100%; 
-      width: 100%; 
-      z-index: 1;
-      border-radius: 0.75rem;
-    }
-
-    .custom-input, .custom-select {
-      width: 100%;
-      padding: 0.5rem 0.75rem;
-      border-radius: 0.375rem;
-      border: 1px solid #cbd5e1;
-      font-size: 0.85rem;
-      background-color: #f8fafc;
-      color: #1e293b;
-      outline: none;
-      transition: all 0.2s;
-    }
-    .custom-input:focus, .custom-select:focus {
-      border-color: #2563eb;
-      background-color: #fff;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
-    
-    .custom-input:disabled, .custom-select:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: #f1f5f9;
-    }
-  </style>
 </head>
 <body>
 
@@ -71,7 +20,7 @@
           <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
           <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
       </div>
-      <span class="text-white font-bold text-sm">Geovisor Río Acre - Cobija</span>
+      <span class="text-white font-semibold text-sm">Geovisor Río Acre - Cobija</span>
   </header>
 
   <div class="flex-1 px-4 pb-4 grid grid-cols-12 gap-4 overflow-hidden">
@@ -83,22 +32,22 @@
     <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
       
       <div class="dashboard-panel p-5 space-y-4">
-        <div class="text-xs font-black text-slate-400 tracking-widest border-b border-slate-100 pb-2 flex items-center gap-2">
-          <i class="fa-solid fa-arrow-down-short-wide text-blue-600"></i> Panel de Consultas
+        <div class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-down-short-wide text-blue-600"></i> Panel de consultas
         </div>
 
         <div class="grid grid-cols-12 gap-4 items-end">
           <div class="col-span-5">
-            <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">1. Nivel WSEL (m):</label>
+            <label class="text-xs font-semibold text-slate-600 block mb-1">1. Nivel WSEL (m):</label>
             <div class="relative">
-              <input type="number" id="wselInput" oninput="validarIngresoWSEL()" class="custom-input font-mono font-bold text-lg text-blue-600 text-center pr-6" placeholder="Ej. 182.50" step="0.01">
-              <span class="absolute right-2 top-3 text-xs font-bold text-slate-400">m</span>
+              <input type="number" id="wselInput" oninput="validarIngresoWSEL()" class="custom-input font-mono font-bold text-base text-blue-600 text-center pr-6" placeholder="Ej. 182.50" step="0.01">
+              <span class="absolute right-2 top-2.5 text-xs font-semibold text-slate-400">m</span>
             </div>
           </div>
 
           <div class="col-span-7">
-            <label class="text-[11px] font-black text-slate-700 tracking-wider block mb-1">2. Seleccione Escenario / Plan:</label>
-            <select id="planSelect" class="custom-select font-semibold text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
+            <label class="text-xs font-semibold text-slate-600 block mb-1">2. Seleccione escenario / plan:</label>
+            <select id="planSelect" class="custom-select font-medium text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
               <option value="" selected disabled>-- Ingrese WSEL primero --</option>
               <option value="p01">P01</option>
               <option value="p02">P02</option>
@@ -110,18 +59,18 @@
         </div>
 
         <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
-          <div>
-            <span class="text-[10px] font-black text-slate-400 tracking-wider block">3. Tiempo Detectado:</span>
-            <input type="text" id="fechaDetectadaInput" class="font-bold text-slate-700 bg-transparent text-sm outline-none border-none p-0 mt-0.5" value="Esperando variables..." readonly>
+          <div class="flex-1 mr-2">
+            <label class="text-xs font-semibold text-slate-600 block mb-1">3. Fecha y hora de registro (Libre):</label>
+            <input type="datetime-local" id="fechaDetectadaInput" class="font-medium text-slate-700 bg-white border border-slate-200 rounded px-2 py-1 text-xs outline-none w-full cursor-pointer">
           </div>
-          <div class="text-right">
-            <span id="badgeEstado" class="text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded uppercase tracking-wider">Inactivo</span>
+          <div class="text-right shrink-0">
+            <span id="badgeEstado" class="text-[10px] font-medium bg-slate-200 text-slate-600 px-2.5 py-1 rounded">Inactivo</span>
           </div>
         </div>
       </div>
 
       <div class="dashboard-panel p-4 flex-1 flex flex-col justify-between min-h-[260px]">
-        <div class="text-xs font-black text-slate-400 tracking-widest mb-2">
+        <div class="text-sm font-bold text-slate-700 mb-2">
           <i class="fa-solid fa-chart-area text-blue-600 mr-1"></i> Hidrograma detectado automáticamente
         </div>
         
@@ -129,27 +78,51 @@
           <canvas id="chartJsCanvas"></canvas>
         </div>
 
-        <div class="text-[10px] text-center text-slate-500 font-semibold mt-2">
-          <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> El gráfico e indicador se actualizan inmediatamente al elegir el plan.
+        <div class="text-[11px] text-center text-slate-500 font-medium mt-2">
+          <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> El geoservicio WMS y el gráfico dependen únicamente del nivel WSEL y el plan seleccionado.
         </div>
       </div>
 
-      <div class="bg-slate-900 rounded-xl p-3 text-green-400 font-mono text-[10px] leading-relaxed shadow-inner shrink-0">
-        <span class="text-slate-500 block font-sans font-bold uppercase text-[9px]">4. Fin de consulta - Estado GeoServer:</span>
-        <div id="logConsole" class="text-yellow-400">Esperando ejecución del flujo...</div>
+      <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-sans text-xs leading-relaxed shadow-inner shrink-0 flex flex-col gap-2 min-h-[180px]">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+          <span class="text-slate-400 font-bold text-xs">4. Historial de guardado y servicios WMS:</span>
+          <button id="btnGuardar" onclick="guardarConsultaEnHistorial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-2.5 py-1 rounded transition-colors" disabled>
+            ➕ Guardar consulta
+          </button>
+        </div>
+        
+        <div class="overflow-y-auto flex-1 max-h-[120px] pr-1 tabla-scroll">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="text-slate-400 border-b border-slate-800 font-semibold">
+                <th class="pb-1.5">#</th>
+                <th class="pb-1.5">Plan</th>
+                <th class="pb-1.5">WSEL</th>
+                <th class="pb-1.5">Fecha libre</th>
+                <th class="pb-1.5 text-yellow-400">Servicio WMS solicitado</th>
+                <th class="pb-1.5 text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="historialContenido" class="text-slate-300 divide-y divide-slate-800/40 font-medium">
+              <tr id="historialVacio">
+                <td colspan="6" class="text-center text-slate-500 py-4 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
   </div>
 
   <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-8 z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <span class="text-[10px] text-slate-400 font-medium">SENAMHI © 2026</span>
+    <span class="text-xs text-slate-400 font-normal">SENAMHI © 2026</span>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   
   <script>
-    // --- 1. INICIALIZAR MAPA ---
+    // --- 1. INICIALIZAR MAPA (Tus líneas originales exactas) ---
     var map = L.map('map', { zoomControl: false }).setView([-11.018, -68.752], 13);
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     var esriSatellital = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
@@ -161,6 +134,11 @@
     var estiloAsignado = "estilo_manchas_inundacion";
     var capasActivas = {};
 
+    var contadorHistorial = 0;
+    var consultaActivaActual = null;
+
+    document.getElementById('fechaDetectadaInput').value = new Date().toISOString().substring(0, 16);
+
     // --- 2. METADATA REAL DE LOS ARCHIVOS EXCEL ---
     var dbExcelPlanes = {
       p01: { min: 177.0735, max: 186.5382, length: 95 },
@@ -170,7 +148,6 @@
       p05: { min: 178.0618, max: 191.0609, length: 95 }
     };
 
-    // Generador matemático preciso de las curvas hidrológicas
     function generarCurvaExcel(planID) {
       var meta = dbExcelPlanes[planID];
       var puntos = [];
@@ -183,7 +160,6 @@
         if (wselCalculado > meta.max) wselCalculado = meta.max;
         if (wselCalculado < meta.min) wselCalculado = meta.min;
 
-        // CÁLCULO ESTÁNDAR DEL AVANCE DEL TIEMPO (Cada paso incrementa 15 minutos exactos)
         var totalMinutos = (i - 1) * 15;
         var hora = Math.floor(totalMinutos / 60);
         var min = totalMinutos % 60;
@@ -197,7 +173,7 @@
       return puntos;
     }
 
-    // --- 3. CHART ENGINE (INICIALIZACIÓN) ---
+    // --- 3. CHART ENGINE ---
     var miChart;
     function inicializarChartVacio() {
       var ctx = document.getElementById('chartJsCanvas').getContext('2d');
@@ -209,8 +185,7 @@
     }
     inicializarChartVacio();
 
-    // --- 4. CONTROLADORES DEL FLUJO INTERACTIVO ---
-
+    // --- 4. CONTROLADORES INTERACTIVOS ---
     function validarIngresoWSEL() {
       var wselVal = document.getElementById('wselInput').value.trim();
       var selectorPlanes = document.getElementById('planSelect');
@@ -239,50 +214,51 @@
       }
 
       var badge = document.getElementById('badgeEstado');
-      badge.className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
+      badge.className = "text-[10px] font-semibold bg-green-500 text-white px-2.5 py-1 rounded animate-pulse";
       badge.innerText = "Procesado";
 
       var datosPlanActual = generarCurvaExcel(planSeleccionado);
       
-      // Buscar punto más cercano en el hidrograma
       var puntoMasCercano = datosPlanActual.reduce((prev, curr) => 
         Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev
       );
 
-      document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
+      renderizarGraficoYMapa(datosPlanActual, puntoMasCercano, planSeleccionado);
+    }
 
+    function renderizarGraficoYMapa(datosPlanActual, puntoMasCercano, planSeleccionado) {
       miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
       miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
       miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
       miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
       miChart.update();
 
-      // --- TRADUCCIÓN EXACTA AL FORMATO REAL DE GEOSERVER ---
-      // Forzar que el prefijo del paso tenga siempre DOS dígitos (ej: 01, 02, 03) para coincidir con la previsualización
-      var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
-      
-      // Descomponer "19APR 00:15:00"
+      var numeroPasoFormateated = String(puntoMasCercano.step).padStart(2, '0');
       var partesFecha = puntoMasCercano.date.split(" "); 
-      var diaMes = partesFecha[0]; // "19APR"
-      var horaMinSeg = partesFecha[1]; // "00:15:00"
+      var diaMes = partesFecha[0];     
+      var horaMinSeg = partesFecha[1]; 
       
-      // Reemplazar ":" por "_" -> "00_15_00"
       var horaLimpia = horaMinSeg.replace(/:/g, "_");
+      var cadenaFechaFinal = `${diaMes}2026_${horaLimpia}`; 
       
-      // Construcción unificada con el año indexado en el servidor: "19APR2026_00_15_00"
-      var cadenaFechaFinal = `${diaMes}2026_${horaLimpia}`;
-      
-      // Estructura idéntica: WSE_02_19APR2026_00_15_00_p01
-      var nombreCapaGeoTIFF = `WSE_${numeroPasoFormateado}_${cadenaFechaFinal}_${planSeleccionado}`;
-      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL aproximado: ${puntoMasCercano.wsel}m)`;
+      var nombreCapaGeoTIFF = `WSE_${numeroPasoFormateated}_${cadenaFechaFinal}_${planSeleccionado}`;
+      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL: ${puntoMasCercano.wsel}m)`;
 
-      // Limpieza del mapa antes de sobreponer la capa simulada
+      var fechaUsuarioActual = document.getElementById('fechaDetectadaInput').value || "No especificada";
+
+      consultaActivaActual = {
+        plan: planSeleccionado,
+        wsel: puntoMasCercano.wsel,
+        fechaUsuario: fechaUsuarioActual.replace("T", " "),
+        layerFullWMS: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`
+      };
+      document.getElementById('btnGuardar').disabled = false;
+
       if (capasActivas[planSeleccionado]) {
         map.removeLayer(capasActivas[planSeleccionado]);
         layersControl.removeLayer(capasActivas[planSeleccionado]);
       }
 
-      // Llamado WMS directo respetando mayúsculas y minúsculas exactas del workspace
       var nuevaCapaWMS = L.tileLayer.wms(urlServidorWms, {
         layers: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
         format: 'image/png',
@@ -293,17 +269,65 @@
 
       capasActivas[planSeleccionado] = nuevaCapaWMS;
       layersControl.addOverlay(nuevaCapaWMS, labelCapaFinal);
+    }
 
-      document.getElementById('logConsole').innerHTML = `
-        <span class="text-green-400">> Ráster cargado con éxito:</span> 
-        Capa: <span class="text-white">${espacioTrabajoReal}:${nombreCapaGeoTIFF}</span>
+    // --- 5. GESTIÓN DEL HISTORIAL ---
+    function guardarConsultaEnHistorial() {
+      if (!consultaActivaActual) return;
+
+      var vacioRow = document.getElementById('historialVacio');
+      if (vacioRow) vacioRow.remove();
+
+      contadorHistorial++;
+      var tbody = document.getElementById('historialContenido');
+      
+      var fila = document.createElement('tr');
+      fila.id = `historial-row-${contadorHistorial}`;
+      fila.className = "hover:bg-slate-800/40 border-b border-slate-800/30 transition-colors";
+      
+      var pPlan = consultaActivaActual.plan;
+      var pWsel = consultaActivaActual.wsel;
+      var pFecha = consultaActivaActual.fechaUsuario;
+      var pWMS = consultaActivaActual.layerFullWMS;
+
+      fila.innerHTML = `
+        <td class="py-2 text-slate-500">${contadorHistorial}</td>
+        <td class="py-2 font-bold text-blue-400">${pPlan.toUpperCase()}</td>
+        <td class="py-2 text-emerald-400 font-semibold">${pWsel.toFixed(4)} m</td>
+        <td class="py-2 text-slate-400">${pFecha}</td>
+        <td class="py-2 text-yellow-400 font-mono text-[10px] select-all" title="Click para seleccionar">${pWMS}</td>
+        <td class="py-2 text-center">
+          <button onclick="recargarConsultaHistorial('${pPlan}', ${pWsel}, '${pFecha}')" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded mr-1 transition-colors">👁️ Ver</button>
+          <button onclick="eliminarFilaHistorial('${fila.id}')" class="bg-red-950 hover:bg-red-800 text-red-300 text-[10px] px-1.5 py-0.5 rounded transition-colors">🗑️</button>
+        </td>
       `;
+      tbody.appendChild(fila);
+    }
+
+    function eliminarFilaHistorial(idFila) {
+      document.getElementById(idFila).remove();
+      var tbody = document.getElementById('historialContenido');
+      if (tbody.children.length === 0) {
+        tbody.innerHTML = `
+          <tr id="historialVacio">
+            <td colspan="6" class="text-center text-slate-500 py-4 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
+          </tr>
+        `;
+        contadorHistorial = 0;
+      }
+    }
+
+    function recargarConsultaHistorial(plan, wsel, fechaStr) {
+      document.getElementById('fechaDetectadaInput').value = fechaStr.replace(" ", "T");
+      document.getElementById('wselInput').value = wsel;
+      document.getElementById('planSelect').value = plan;
+      validarIngresoWSEL();
+      procesarConsultaAutomatica();
     }
 
     function resetearEstadoSimulacion() {
-      document.getElementById('fechaDetectadaInput').value = "Esperando variables...";
       var badge = document.getElementById('badgeEstado');
-      badge.className = "text-[9px] font-bold bg-slate-200 text-slate-600 px-2 py-1 rounded uppercase tracking-wider";
+      badge.className = "text-[10px] font-medium bg-slate-200 text-slate-600 px-2.5 py-1 rounded";
       badge.innerText = "Inactivo";
       
       miChart.data.labels = [];
@@ -317,8 +341,8 @@
          }
       }
       capasActivas = {};
-      
-      document.getElementById('logConsole').innerHTML = `<span class="text-slate-500">Esperando ejecución del flujo...</span>`;
+      consultaActivaActual = null;
+      document.getElementById('btnGuardar').disabled = true;
     }
   </script>
 </body>
