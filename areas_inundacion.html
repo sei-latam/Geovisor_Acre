@@ -2,12 +2,10 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>COAST Geovisor - Simulación Hidrológica Cobija</title>
+  <title>COAST Geovisor - Áreas de Inundación</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
-  
   <link rel="stylesheet" href="index.css">
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -17,18 +15,18 @@
 
   <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
     <div class="flex items-center gap-3 w-1/4">
-      <img src="logo-inst1.png" alt="Logo" class="h-8 w-auto">
+      <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
+      <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
     </div>
+    
     <nav class="flex h-full items-center gap-6 text-xs tracking-tight text-slate-400">
       <a href="index.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-house mr-1.5"></i> Inicio</a>
       <a href="area_estudio.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-map-location-dot mr-1.5"></i> Área de Estudio</a>
       <a href="eventos_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-chart-line mr-1.5"></i> Análisis de Eventos</a>
-      <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-blue-500 text-blue-400 font-bold transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>
-      <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
+      <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>
+      <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-blue-500 text-blue-400 font-bold transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
     </nav>
-    <div class="w-1/4 text-right">
-      <span class="text-white font-bold text-xs uppercase tracking-wider">Proyecto COAST</span>
-    </div>
+    <div class="w-1/4 text-right"><span class="text-white font-bold text-xs uppercase tracking-wider">SEI - SENAMHI</span></div>
   </header>
 
   <div class="flex-1 px-4 pb-2 grid grid-cols-12 gap-4 overflow-hidden">
@@ -60,8 +58,7 @@
           <span>Galería de mapas base</span>
           <button onclick="toggleWidget('panelBasemaps')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
         </div>
-        <div id="basemapGridContainer" class="p-3 grid grid-cols-2 gap-2 max-h-80 overflow-y-auto bg-slate-50">
-        </div>
+        <div id="basemapGridContainer" class="p-3 grid grid-cols-2 gap-2 max-h-80 overflow-y-auto bg-slate-50"></div>
       </div>
 
       <div id="panelDibujo" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-64 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
@@ -110,13 +107,11 @@
           <div class="p-3 bg-slate-50 max-h-64 overflow-y-auto tabla-scroll flex flex-col gap-3">
             <div>
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Mapa Base Global</span>
-              <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm">
-                </div>
+              <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm"></div>
             </div>
             <div>
               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Capas WMS en el Comparador</span>
-              <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5">
-                </div>
+              <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5"></div>
             </div>
           </div>
         </div>
@@ -131,7 +126,6 @@
     </div>
 
     <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
-      
       <div class="dashboard-panel p-4 space-y-3">
         <div class="text-xs font-bold text-slate-700 tracking-tight border-b border-slate-100 pb-1.5 flex items-center gap-2">
           <i class="fa-solid fa-arrow-down-short-wide text-blue-600 text-sm"></i> Panel de Consultas
