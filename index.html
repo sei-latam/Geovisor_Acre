@@ -6,48 +6,139 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="index.css">
   
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body>
+<body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
 
   <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
       <div class="flex items-center gap-3 w-1/3">
           <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
           <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
       </div>
-      <span class="text-white font-semibold text-sm">Geovisor Río Acre - Cobija</span>
+      <span class="text-white font-bold text-sm">Geovisor Río Acre - Cobija</span>
   </header>
 
-  <div class="flex-1 px-4 pb-4 grid grid-cols-12 gap-4 overflow-hidden">
+  <div class="flex-1 px-4 pb-2 grid grid-cols-12 gap-4 overflow-hidden">
     
-    <div class="col-span-7 dashboard-panel !p-1">
+    <div class="col-span-7 dashboard-panel !p-0 relative group min-h-[400px]">
       <div id="map"></div>
+      
+      <div class="absolute top-4 left-4 z-[1000] flex flex-col gap-1 w-72">
+        <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-md px-2 py-1.5 transition-all focus-within:ring-2 focus-within:ring-blue-500">
+          <input type="text" id="searchInput" placeholder="Buscar dirección o lugar..." class="w-full text-xs text-slate-700 outline-none px-1 bg-transparent" oninput="buscarSugerencias()" onkeypress="if(event.key === 'Enter') ejecutarBusquedaDirecta()">
+          <button onclick="ejecutarBusquedaDirecta()" class="bg-blue-600 hover:bg-blue-500 text-white rounded p-1.5 transition-colors shrink-0">
+            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+          </button>
+        </div>
+        <div id="searchSuggestions" class="hidden bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto flex flex-col divide-y divide-slate-100 text-xs text-slate-700"></div>
+      </div>
+
+      <div class="absolute top-4 right-4 z-[1000] flex gap-2">
+        <button onclick="toggleWidget('panelDibujo')" title="Herramientas de Dibujo y Medición" class="w-9 h-9 bg-white text-slate-700 border border-slate-200 rounded-lg shadow-md flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-all">
+          <i class="fa-solid fa-pen-ruler text-sm"></i>
+        </button>
+        <button onclick="toggleWidget('panelBasemaps')" title="Galería de Mapas Base" class="w-9 h-9 bg-white text-slate-700 border border-slate-200 rounded-lg shadow-md flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-all">
+          <i class="fa-solid fa-table-cells-large text-sm"></i>
+        </button>
+      </div>
+
+      <div id="panelBasemaps" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-80 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
+        <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
+          <span>Galería de mapas base</span>
+          <button onclick="toggleWidget('panelBasemaps')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
+        </div>
+        <div id="basemapGridContainer" class="p-3 grid grid-cols-2 gap-2 max-h-80 overflow-y-auto bg-slate-50">
+        </div>
+      </div>
+
+      <div id="panelDibujo" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-64 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
+        <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
+          <span>Dibujo y Medición</span>
+          <button onclick="toggleWidget('panelDibujo')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
+        </div>
+        <div class="p-4 flex flex-col gap-3">
+          <div class="grid grid-cols-4 gap-1.5 border-b pb-3 border-slate-100">
+            <button id="btn-draw-select" onclick="activarHerramientaDibujo('select')" title="Seleccionar Entidad" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
+            <button id="btn-draw-point" onclick="activarHerramientaDibujo('point')" title="Dibujar Punto" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-location-dot text-xs"></i></button>
+            <button id="btn-draw-polyline" onclick="activarHerramientaDibujo('polyline')" title="Dibujar Polilínea" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-share-nodes text-xs"></i></button>
+            <button id="btn-draw-polygon" onclick="activarHerramientaDibujo('polygon')" title="Dibujar Polígono" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-draw-polygon text-xs"></i></button>
+            <button id="btn-draw-rectangle" onclick="activarHerramientaDibujo('rectangle')" title="Dibujar Rectángulo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-vector-square text-xs"></i></button>
+            <button id="btn-draw-circle" onclick="activarHerramientaDibujo('circle')" title="Dibujar Círculo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-circle text-xs"></i></button>
+            <button id="btn-draw-lasso" onclick="activarHerramientaDibujo('lasso')" title="Selección por Lazo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></button>
+            <button id="btn-draw-measure" onclick="activarHerramientaDibujo('measure')" title="Medir Distancia de Afectación" class="h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-ruler-combined text-xs"></i></button>
+          </div>
+          <button onclick="limpiarDibujos()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-1.5 rounded flex items-center justify-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-trash-can"></i> Limpiar gráficos de pantalla
+          </button>
+          <div id="statusDibujo" class="text-[10px] text-slate-400 italic text-center border-t pt-2 mt-1">Ninguna herramienta activa</div>
+        </div>
+      </div>
+
+      <div class="absolute bottom-4 left-4 z-[1000] flex flex-col gap-2 items-start">
+        <div class="flex flex-col gap-1 shadow-md rounded-lg overflow-hidden border border-slate-200 bg-white">
+          <button onclick="volverAlHome()" title="Vista predeterminada" class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-house text-xs"></i></button>
+          <button onclick="obtenerUbicacionActual()" title="Mi ubicación" class="w-8 h-8 flex items-center justify-center border-t border-slate-100 hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-crosshairs text-xs"></i></button>
+        </div>
+        
+        <div class="flex gap-2">
+          <button onclick="toggleWidget('panelCapasGEE')" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
+            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Capas Activas</span>
+          </button>
+          <button onclick="toggleLeyenda()" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
+            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Ver Leyenda</span>
+          </button>
+        </div>
+
+        <div id="panelCapasGEE" class="hidden bg-white border border-slate-200 rounded-xl shadow-2xl w-72 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
+          <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Gestor de Capas (GEE Style)</span>
+            <button onclick="toggleWidget('panelCapasGEE')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
+          </div>
+          <div class="p-3 bg-slate-50 max-h-64 overflow-y-auto tabla-scroll flex flex-col gap-3">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Mapa Base Global</span>
+              <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm">
+                </div>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Capas WMS en el Comparador</span>
+              <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5">
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="panelLeyenda" class="hidden bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-lg shadow-xl w-56 text-slate-700">
+          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b pb-1 mb-2">Estado de Capas Activas</div>
+          <div id="leyendaContenedorDinamico" class="flex flex-col gap-1.5 text-xs">
+            <span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
       
-      <div class="dashboard-panel p-5 space-y-4">
-        <div class="text-sm font-bold text-slate-700 border-b border-slate-100 pb-2 flex items-center gap-2">
-          <i class="fa-solid fa-arrow-down-short-wide text-blue-600"></i> Panel de consultas
+      <div class="dashboard-panel p-4 space-y-3">
+        <div class="text-xs font-bold text-slate-700 tracking-tight border-b border-slate-100 pb-1.5 flex items-center gap-2">
+          <i class="fa-solid fa-arrow-down-short-wide text-blue-600 text-sm"></i> Panel de Consultas
         </div>
-
-        <div class="grid grid-cols-12 gap-4 items-end">
+        <div class="grid grid-cols-12 gap-3 items-end">
           <div class="col-span-5">
-            <label class="text-xs font-semibold text-slate-600 block mb-1">1. Nivel WSEL (m):</label>
+            <label class="text-[10px] font-black text-slate-700 tracking-wider block mb-1">1. Nivel WSEL (m):</label>
             <div class="relative">
               <input type="number" id="wselInput" oninput="validarIngresoWSEL()" class="custom-input font-mono font-bold text-base text-blue-600 text-center pr-6" placeholder="Ej. 182.50" step="0.01">
-              <span class="absolute right-2 top-2.5 text-xs font-semibold text-slate-400">m</span>
+              <span class="absolute right-2 top-2.5 text-xs font-bold text-slate-400">m</span>
             </div>
           </div>
-
           <div class="col-span-7">
-            <label class="text-xs font-semibold text-slate-600 block mb-1">2. Seleccione escenario / plan:</label>
-            <select id="planSelect" class="custom-select font-medium text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
+            <label class="text-[10px] font-black text-slate-700 tracking-wider block mb-1">2. Seleccione Escenario / Plan:</label>
+            <select id="planSelect" class="custom-select font-semibold text-slate-600" onchange="procesarConsultaAutomatica()" disabled>
               <option value="" selected disabled>-- Ingrese WSEL primero --</option>
               <option value="p01">P01</option>
               <option value="p02">P02</option>
@@ -57,7 +148,6 @@
             </select>
           </div>
         </div>
-
         <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
           <div class="flex-1 mr-2">
             <label class="text-xs font-semibold text-slate-600 block mb-1">3. Fecha y hora de registro (Libre):</label>
@@ -69,281 +159,59 @@
         </div>
       </div>
 
-      <div class="dashboard-panel p-4 flex-1 flex flex-col justify-between min-h-[260px]">
-        <div class="text-sm font-bold text-slate-700 mb-2">
-          <i class="fa-solid fa-chart-area text-blue-600 mr-1"></i> Hidrograma detectado automáticamente
+      <div class="dashboard-panel p-4 h-[250px] flex flex-col justify-between shrink-0">
+        <div class="text-xs font-bold text-slate-700 tracking-tight mb-2 flex items-center gap-1">
+          <i class="fa-solid fa-chart-area text-blue-600 text-sm"></i> Niveles WSEL vs Tiempo:
         </div>
-        
-        <div class="w-full flex-1 bg-slate-50 border border-slate-100 rounded-xl p-2 relative min-h-[160px]">
+        <div class="w-full flex-1 bg-slate-50 border border-slate-100 rounded-xl p-1 relative min-h-[110px]">
           <canvas id="chartJsCanvas"></canvas>
-        </div>
-
-        <div class="text-[11px] text-center text-slate-500 font-medium mt-2">
-          <i class="fa-solid fa-circle-info text-blue-500 mr-1"></i> El geoservicio WMS y el gráfico dependen únicamente del nivel WSEL y el plan seleccionado.
         </div>
       </div>
 
-      <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-sans text-xs leading-relaxed shadow-inner shrink-0 flex flex-col gap-2 min-h-[180px]">
-        <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-          <span class="text-slate-400 font-bold text-xs">4. Historial de guardado y servicios WMS:</span>
-          <button id="btnGuardar" onclick="guardarConsultaEnHistorial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-2.5 py-1 rounded transition-colors" disabled>
-            ➕ Guardar consulta
+      <div class="dashboard-panel p-4 flex-1 flex flex-col min-h-[250px]">
+        <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2 shrink-0">
+          <div class="text-xs font-bold text-slate-700 tracking-tight flex items-center gap-1">
+            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i> Historial de Consultas:
+          </div>
+          <button id="btnGuardarConsulta" onclick="guardarConsultaEnHistorial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] px-3 py-1.5 rounded shadow transition-all flex items-center gap-1" disabled>
+            <i class="fa-solid fa-bookmark"></i> Adicionar al historial
           </button>
         </div>
         
-        <div class="overflow-y-auto flex-1 max-h-[120px] pr-1 tabla-scroll">
-          <table class="w-full text-left text-xs">
+        <div class="overflow-y-auto flex-1 max-h-[160px] pr-1 tabla-scroll">
+          <table class="w-full text-left text-xs border-collapse">
             <thead>
-              <tr class="text-slate-400 border-b border-slate-800 font-semibold">
-                <th class="pb-1.5">#</th>
-                <th class="pb-1.5">Plan</th>
-                <th class="pb-1.5">WSEL</th>
-                <th class="pb-1.5">Fecha libre</th>
-                <th class="pb-1.5 text-yellow-400">Servicio WMS solicitado</th>
-                <th class="pb-1.5 text-center">Acción</th>
+              <tr class="text-slate-400 border-b border-slate-200 font-bold uppercase tracking-wider text-[10px]">
+                <th class="pb-2 pl-2">#</th>
+                <th class="pb-2">Plan</th>
+                <th class="pb-2">WSEL</th>
+                <th class="pb-2">Fecha libre</th>
+                <th class="pb-2 text-blue-600">Servicio WMS solicitado</th>
+                <th class="pb-2 text-center">Acción</th>
               </tr>
             </thead>
-            <tbody id="historialContenido" class="text-slate-300 divide-y divide-slate-800/40 font-medium">
+            <tbody id="historialContenido" class="divide-y divide-slate-100 bg-white">
               <tr id="historialVacio">
-                <td colspan="6" class="text-center text-slate-500 py-4 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
+                <td colspan="6" class="text-center text-slate-400 py-6 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <div class="bg-slate-900 rounded-xl p-2.5 text-green-400 font-mono text-[10px] leading-relaxed shadow-inner shrink-0">
+        <span class="text-slate-500 block font-sans font-bold uppercase text-[9px]">Fin de consulta - Último Evento WMS:</span>
+        <div id="logConsole" class="text-yellow-400">> Esperando ejecución del flujo...</div>
+      </div>
+
     </div>
   </div>
 
-  <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-8 z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <span class="text-xs text-slate-400 font-normal">SENAMHI © 2026</span>
+  <footer class="h-10 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-8 z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
+    <span class="text-[10px] text-slate-400 font-medium">SENAMHI © 2026</span>
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  
-  <script>
-    // --- 1. INICIALIZAR MAPA (Tus líneas originales exactas) ---
-    var map = L.map('map', { zoomControl: false }).setView([-11.018, -68.752], 13);
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-    var esriSatellital = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
-    var baseLayers = { "Satélite Esri": esriSatellital, "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{y}/{x}.png') };
-    var layersControl = L.control.layers(baseLayers, {}, { collapsed: false, position: 'topright' }).addTo(map);
-
-    var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/wms";
-    var espacioTrabajoReal = "coast_wind_data";
-    var estiloAsignado = "estilo_manchas_inundacion";
-    var capasActivas = {};
-
-    var contadorHistorial = 0;
-    var consultaActivaActual = null;
-
-    document.getElementById('fechaDetectadaInput').value = new Date().toISOString().substring(0, 16);
-
-    // --- 2. METADATA REAL DE LOS ARCHIVOS EXCEL ---
-    var dbExcelPlanes = {
-      p01: { min: 177.0735, max: 186.5382, length: 95 },
-      p02: { min: 177.9383, max: 186.7893, length: 325 },
-      p03: { min: 177.1497, max: 188.7584, length: 95 },
-      p04: { min: 178.0590, max: 190.3933, length: 95 },
-      p05: { min: 178.0618, max: 191.0609, length: 95 }
-    };
-
-    function generarCurvaExcel(planID) {
-      var meta = dbExcelPlanes[planID];
-      var puntos = [];
-      for (var i = 1; i <= meta.length; i++) {
-        var t = i / meta.length;
-        var variacion = (meta.max - meta.min) * Math.pow(Math.sin(t * Math.PI * 0.95), 2.2);
-        var ruidoFisico = Math.sin(i * 0.5) * 0.08;
-        var wselCalculado = meta.min + variacion + ruidoFisico;
-        
-        if (wselCalculado > meta.max) wselCalculado = meta.max;
-        if (wselCalculado < meta.min) wselCalculado = meta.min;
-
-        var totalMinutos = (i - 1) * 15;
-        var hora = Math.floor(totalMinutos / 60);
-        var min = totalMinutos % 60;
-        
-        var horaStr = String(hora).padStart(2, '0');
-        var minStr = String(min).padStart(2, '0');
-        var stringFecha = `19APR ${horaStr}:${minStr}:00`;
-
-        puntos.push({ step: i, wsel: parseFloat(wselCalculado.toFixed(4)), date: stringFecha });
-      }
-      return puntos;
-    }
-
-    // --- 3. CHART ENGINE ---
-    var miChart;
-    function inicializarChartVacio() {
-      var ctx = document.getElementById('chartJsCanvas').getContext('2d');
-      miChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [{ label: 'Serie Temporal WSEL', data: [], borderColor: '#2563eb', borderWidth: 2, fill: true, backgroundColor: 'rgba(219, 234, 254, 0.4)', pointRadius: 0 }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { grid: { color: '#f1f5f9' } } } }
-      });
-    }
-    inicializarChartVacio();
-
-    // --- 4. CONTROLADORES INTERACTIVOS ---
-    function validarIngresoWSEL() {
-      var wselVal = document.getElementById('wselInput').value.trim();
-      var selectorPlanes = document.getElementById('planSelect');
-
-      if (wselVal !== "" && !isNaN(parseFloat(wselVal))) {
-        selectorPlanes.disabled = false;
-        selectorPlanes.options[0].text = "-- Seleccione el Plan --";
-      } else {
-        selectorPlanes.disabled = true;
-        selectorPlanes.value = "";
-        selectorPlanes.options[0].text = "-- Ingrese WSEL primero --";
-        resetearEstadoSimulacion();
-      }
-    }
-
-    function procesarConsultaAutomatica() {
-      var wselValor = parseFloat(document.getElementById('wselInput').value);
-      var planSeleccionado = document.getElementById('planSelect').value;
-      var meta = dbExcelPlanes[planSeleccionado];
-
-      if (wselValor < meta.min || wselValor > meta.max) {
-        alert(`Error de límites: El valor ${wselValor}m excede los registros históricos del plan seleccionado [${meta.min.toFixed(2)}m - ${meta.max.toFixed(2)}m].`);
-        document.getElementById('planSelect').value = "";
-        resetearEstadoSimulacion();
-        return;
-      }
-
-      var badge = document.getElementById('badgeEstado');
-      badge.className = "text-[10px] font-semibold bg-green-500 text-white px-2.5 py-1 rounded animate-pulse";
-      badge.innerText = "Procesado";
-
-      var datosPlanActual = generarCurvaExcel(planSeleccionado);
-      
-      var puntoMasCercano = datosPlanActual.reduce((prev, curr) => 
-        Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev
-      );
-
-      renderizarGraficoYMapa(datosPlanActual, puntoMasCercano, planSeleccionado);
-    }
-
-    function renderizarGraficoYMapa(datosPlanActual, puntoMasCercano, planSeleccionado) {
-      miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
-      miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
-      miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
-      miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
-      miChart.update();
-
-      var numeroPasoFormateated = String(puntoMasCercano.step).padStart(2, '0');
-      var partesFecha = puntoMasCercano.date.split(" "); 
-      var diaMes = partesFecha[0];     
-      var horaMinSeg = partesFecha[1]; 
-      
-      var horaLimpia = horaMinSeg.replace(/:/g, "_");
-      var cadenaFechaFinal = `${diaMes}2026_${horaLimpia}`; 
-      
-      var nombreCapaGeoTIFF = `WSE_${numeroPasoFormateated}_${cadenaFechaFinal}_${planSeleccionado}`;
-      var labelCapaFinal = `${planSeleccionado.toUpperCase()} (WSEL: ${puntoMasCercano.wsel}m)`;
-
-      var fechaUsuarioActual = document.getElementById('fechaDetectadaInput').value || "No especificada";
-
-      consultaActivaActual = {
-        plan: planSeleccionado,
-        wsel: puntoMasCercano.wsel,
-        fechaUsuario: fechaUsuarioActual.replace("T", " "),
-        layerFullWMS: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`
-      };
-      document.getElementById('btnGuardar').disabled = false;
-
-      if (capasActivas[planSeleccionado]) {
-        map.removeLayer(capasActivas[planSeleccionado]);
-        layersControl.removeLayer(capasActivas[planSeleccionado]);
-      }
-
-      var nuevaCapaWMS = L.tileLayer.wms(urlServidorWms, {
-        layers: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
-        format: 'image/png',
-        transparent: true,
-        version: '1.1.1',
-        styles: `${espacioTrabajoReal}:${estiloAsignado}`
-      }).addTo(map);
-
-      capasActivas[planSeleccionado] = nuevaCapaWMS;
-      layersControl.addOverlay(nuevaCapaWMS, labelCapaFinal);
-    }
-
-    // --- 5. GESTIÓN DEL HISTORIAL ---
-    function guardarConsultaEnHistorial() {
-      if (!consultaActivaActual) return;
-
-      var vacioRow = document.getElementById('historialVacio');
-      if (vacioRow) vacioRow.remove();
-
-      contadorHistorial++;
-      var tbody = document.getElementById('historialContenido');
-      
-      var fila = document.createElement('tr');
-      fila.id = `historial-row-${contadorHistorial}`;
-      fila.className = "hover:bg-slate-800/40 border-b border-slate-800/30 transition-colors";
-      
-      var pPlan = consultaActivaActual.plan;
-      var pWsel = consultaActivaActual.wsel;
-      var pFecha = consultaActivaActual.fechaUsuario;
-      var pWMS = consultaActivaActual.layerFullWMS;
-
-      fila.innerHTML = `
-        <td class="py-2 text-slate-500">${contadorHistorial}</td>
-        <td class="py-2 font-bold text-blue-400">${pPlan.toUpperCase()}</td>
-        <td class="py-2 text-emerald-400 font-semibold">${pWsel.toFixed(4)} m</td>
-        <td class="py-2 text-slate-400">${pFecha}</td>
-        <td class="py-2 text-yellow-400 font-mono text-[10px] select-all" title="Click para seleccionar">${pWMS}</td>
-        <td class="py-2 text-center">
-          <button onclick="recargarConsultaHistorial('${pPlan}', ${pWsel}, '${pFecha}')" class="bg-blue-600 hover:bg-blue-500 text-white text-[10px] px-2 py-0.5 rounded mr-1 transition-colors">👁️ Ver</button>
-          <button onclick="eliminarFilaHistorial('${fila.id}')" class="bg-red-950 hover:bg-red-800 text-red-300 text-[10px] px-1.5 py-0.5 rounded transition-colors">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(fila);
-    }
-
-    function eliminarFilaHistorial(idFila) {
-      document.getElementById(idFila).remove();
-      var tbody = document.getElementById('historialContenido');
-      if (tbody.children.length === 0) {
-        tbody.innerHTML = `
-          <tr id="historialVacio">
-            <td colspan="6" class="text-center text-slate-500 py-4 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
-          </tr>
-        `;
-        contadorHistorial = 0;
-      }
-    }
-
-    function recargarConsultaHistorial(plan, wsel, fechaStr) {
-      document.getElementById('fechaDetectadaInput').value = fechaStr.replace(" ", "T");
-      document.getElementById('wselInput').value = wsel;
-      document.getElementById('planSelect').value = plan;
-      validarIngresoWSEL();
-      procesarConsultaAutomatica();
-    }
-
-    function resetearEstadoSimulacion() {
-      var badge = document.getElementById('badgeEstado');
-      badge.className = "text-[10px] font-medium bg-slate-200 text-slate-600 px-2.5 py-1 rounded";
-      badge.innerText = "Inactivo";
-      
-      miChart.data.labels = [];
-      miChart.data.datasets[0].data = [];
-      miChart.update();
-      
-      for (var plan in capasActivas) {
-         if (capasActivas[plan]) {
-            map.removeLayer(capasActivas[plan]);
-            layersControl.removeLayer(capasActivas[plan]);
-         }
-      }
-      capasActivas = {};
-      consultaActivaActual = null;
-      document.getElementById('btnGuardar').disabled = true;
-    }
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

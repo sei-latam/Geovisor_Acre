@@ -1,19 +1,147 @@
-.topbar {
-  background-color: #0d3d2a;
-  color: #fff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.3rem 1rem;
-  height: 40px;
-  font-size: 0.9rem;
+/* 1. Importar la familia completa incluyendo los pesos de letra correctos */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* 2. Forzar tipografía estilizada, compacta y moderna */
+html, body, button, input, select, textarea, span, label, table, th, td {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility; /* Mejora drásticamente la renderización */
+  letter-spacing: -0.02em;            /* Hace la fuente más compacta y elegante (tipo SaaS moderno) */
 }
-.topbar-left { display: flex; align-items: center; gap: 0.5rem; }
-.topbar-logo { height: 28px; width: auto; }
-.topbar-center { flex-grow: 1; text-align: center; font-weight: bold; }
-.topbar-right { display: flex; align-items: center; }
-.topbar-search { display: flex; align-items: center; }
-.topbar-input { height: 26px; padding: 0 0.5rem; border: none; border-radius: 4px 0 0 4px; outline: none; }
-.topbar-button { height: 26px; border: none; background-color: #2e5c44; color: #fff; border-radius: 0 4px 4px 0; padding: 0 0.5rem; cursor: pointer; }
-.topbar-button:hover { background-color: #3b7a5a; }
-#map { height: 600px; width: 100%; border: 2px solid #2e5c44; border-radius: 6px; }
+
+body { 
+  background-color: #e7ebee; 
+  height: 100vh;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11"; /* Activa características estéticas nativas de Inter */
+}
+
+.dashboard-panel {
+  background: #ffffff;
+  border-radius: 1rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+#map { 
+  height: 100%; 
+  width: 100%; 
+  z-index: 1;
+  border-radius: 0.75rem;
+}
+
+.custom-input, .custom-select {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.375rem;
+  border: 1px solid #cbd5e1;
+  font-size: 0.85rem;
+  background-color: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.custom-input:focus, .custom-select:focus {
+  border-color: #2563eb;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.custom-input:disabled, .custom-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+}
+
+.tabla-scroll::-webkit-scrollbar { width: 4px; }
+.tabla-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+.tabla-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+.suggestion-item {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.suggestion-item:hover {
+  background-color: #f1f5f9;
+  color: #1d4ed8;
+}
+
+.arcgis-btn-active {
+  background-color: #2563eb !important;
+  color: white !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+.medicion-tooltip {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid #38bdf8;
+  color: #ffffff;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+/* Tarjetas de Mapas Base Estilo ArcGIS */
+.basemap-card {
+  background: #ffffff;
+  border: 2px solid transparent;
+  border-radius: 0.5rem;
+  padding: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.basemap-card:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.basemap-card.active {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+/* Ajustes finos para la tabla del historial */
+#historialContenido tr {
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+#historialContenido td {
+  padding: 0.5rem 0.4rem;
+  vertical-align: middle;
+}
+
+/* Custom GEE UI Elements */
+#panelCapasGEE input[type="checkbox"] {
+  accent-color: #2563eb;
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  border-radius: 4px;
+}
+
+#panelCapasGEE {
+  max-height: 380px;
+}
