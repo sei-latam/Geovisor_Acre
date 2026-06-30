@@ -28,7 +28,7 @@
       <div id="map" class="w-full h-full z-10"></div>
       
       <div class="absolute top-4 left-4 z-[1000] flex flex-col gap-1 w-72">
-        <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-md px-2 py-1.5 transition-all focus-within:ring-2 focus-within:ring-blue-500">
+        <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-md px-2 py-1.0 transition-all focus-within:ring-2 focus-within:ring-blue-500">
           <input type="text" id="searchInput" placeholder="Buscar dirección o lugar..." class="w-full text-xs text-slate-700 outline-none px-1 bg-transparent" oninput="buscarSugerencias()" onkeypress="if(event.key === 'Enter') ejecutarBusquedaDirecta()">
           <button onclick="ejecutarBusquedaDirecta()" class="bg-blue-600 hover:bg-blue-500 text-white rounded p-1.5 transition-colors shrink-0">
             <i class="fa-solid fa-magnifying-glass text-xs"></i>
@@ -120,7 +120,7 @@
 
     <div class="w-[60%] h-full flex flex-col">
       <div class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
-        <span class="text-[10px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-2">Metodología Utilizada</span>
+        <span class="text-[14spx] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-2">Metodología Utilizada</span>
         <div class="flex-1 w-full rounded-lg border bg-slate-50 overflow-hidden flex items-center justify-center p-2 shadow-inner">
           <img src="img/metodologia.png" alt="Metodología" class="w-full h-full object-contain">
         </div>
