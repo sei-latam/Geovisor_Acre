@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <title>COAST Geovisor - Análisis de Eventos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link class="rounded" rel="icon" type="image/png" href="logo-inst3.png">
+  <link rel="icon" type="image/png" href="logo-inst3.png">
   <link rel="stylesheet" href="index.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
@@ -22,63 +23,70 @@
     </nav>
   </header>
 
-  <div class="flex-1 px-4 pb-2 flex gap-6 h-[calc(100vh-8rem)] items-center overflow-hidden">
+  <div class="flex-1 px-4 pb-2 flex gap-4 h-[calc(100vh-8rem)] items-center overflow-hidden">
     
-    <div class="w-[65%] h-full flex flex-col justify-center">
+    <div class="w-[50%] h-full flex flex-col justify-center">
       <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
         
-        <div class="flex items-center justify-between border-b pb-2 mb-3 shrink-0">
-          <span class="text-[10px] font-bold text-slate-900 tracking-wider uppercase">Visualizador Estadístico</span>
-          <div class="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200/60 text-[11px] font-semibold">
-            <button id="tab1" onclick="cambiarGrafico(1)" class="px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm">
-              <i class="fa-solid fa-cloud-showers-heavy mr-1"></i> Curvas IDF (Cobija)
-            </button>
-            <button id="tab2" onclick="cambiarGrafico(2)" class="px-3 py-1.5 rounded-md transition-all text-slate-500 hover:text-slate-800">
-              <i class="fa-solid fa-water mr-1"></i> Hidrogramas de Crecida
+        <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="text-blue-500 text-xs"></i>
+              <span class="text-[14px] font-bold text-slate-900 tracking-wider">Curvas IDF</span>
+            </div>
+            <button onclick="exportarCSVFiltrado('idf')" class="text-[10px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded font-bold transition-all flex items-center gap-1">
+              <i class="fa-solid fa-download"></i> Exportar Selección CSV
             </button>
           </div>
+          
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Adicionar Escenario:</label>
+            <select id="selectIDF" onchange="adicionarPeriodo('idf', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-blue-500 cursor-pointer flex-1">
+              <option value="" disabled selected>Seleccione un periodo de retorno...</option>
+            </select>
+          </div>
+          
+          <div id="tagsIDF" class="flex flex-wrap gap-1 min-h-[24px]"></div>
         </div>
-        
-        <div class="flex-1 w-full relative bg-slate-50/50 rounded-xl p-3 border border-slate-100 flex items-center justify-center">
-          <canvas id="canvasEventos" class="w-full h-full"></canvas>
+
+        <div class="flex-1 w-full relative bg-slate-50/50 rounded-xl p-2 border border-slate-100 flex items-center justify-center">
+          <div id="loadingIDF" class="absolute z-20 text-xs text-slate-500 font-medium flex items-center gap-2">
+            <i class="fa-solid fa-circle-notch animate-spin text-blue-600"></i> Cargando datos...
+          </div>
+          <canvas id="canvasIDF" class="w-full h-full opacity-0 transition-opacity duration-300"></canvas>
         </div>
       </div>
     </div>
     
-    <div class="w-[35%] h-full flex flex-col justify-center">
+    <div class="w-[50%] h-full flex flex-col justify-center">
       <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
-        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b pb-1 mb-3">Análisis de Retorno Estructural</span>
         
-        <div class="flex-1 overflow-y-auto pr-1 text-slate-700 text-xs space-y-4 text-justify">
-          <div>
-            <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5 mb-1">
-              <i class="fa-solid fa-circle-info text-blue-500"></i> Caracterización Hidrológica
-            </h3>
-            <p class="leading-relaxed text-slate-600">
-              El análisis estadístico de eventos extremos en la estación Cobija permite establecer los escenarios de diseño hidráulico ante avenidas extraordinarias del Río Acre, vinculando la intensidad de precipitación con los caudales punta simulados.
-            </p>
+        <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="text-emerald-500 text-xs"></i>
+              <span class="text-[14px] font-bold text-slate-900 tracking-wider">Avenidas Acre - Periodo de Retorno</span>
+            </div>
+            <button onclick="exportarCSVFiltrado('hidro')" class="text-[10px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded font-bold transition-all flex items-center gap-1">
+              <i class="fa-solid fa-download"></i> Exportar Selección CSV
+            </button>
           </div>
+          
+          <div class="flex items-center gap-2">
+            <label class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Adicionar Escenario:</label>
+            <select id="selectHidro" onchange="adicionarPeriodo('hidro', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-emerald-500 cursor-pointer flex-1">
+              <option value="" disabled selected>Seleccione un periodo de retorno...</option>
+            </select>
+          </div>
+          
+          <div id="tagsHidro" class="flex flex-wrap gap-1 min-h-[24px]"></div>
+        </div>
 
-          <div id="infoContextual" class="bg-slate-50 border border-slate-100 p-3 rounded-xl transition-all">
-            <span class="text-[10px] font-bold text-blue-600 tracking-wide uppercase block mb-1" id="infoTitle">Curvas IDF (Figura 1)</span>
-            <p class="text-slate-500 leading-relaxed text-[11px]" id="infoBody">
-              Muestra las curvas de Intensidad-Duración-Frecuencia calculadas para Cobija. A menor duración del evento de tormenta, la tasa de precipitación (mm/hr) incrementa exponencialmente, alcanzando umbrales críticos de saturación en periodos de retorno elevados (Tr 100 y 500 años).
-            </p>
+        <div class="flex-1 w-full relative bg-slate-50/50 rounded-xl p-2 border border-slate-100 flex items-center justify-center">
+          <div id="loadingHidro" class="absolute z-20 text-xs text-slate-500 font-medium flex items-center gap-2">
+            <i class="fa-solid fa-circle-notch animate-spin text-emerald-600"></i> Procesando series...
           </div>
-
-          <div class="border-t pt-3 border-slate-100">
-            <span class="text-[10px] font-bold text-slate-400 tracking-wider block mb-2 uppercase">Gobernanza del Riesgo</span>
-            <ul class="space-y-2 text-[11px] text-slate-600">
-              <li class="flex items-start gap-2">
-                <i class="fa-solid fa-triangle-exertion text-amber-500 mt-0.5 shrink-0"></i>
-                <span><strong>Tr 10 años:</strong> Umbral crítico operativo para sistemas de drenaje urbano pluvial.</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i class="fa-solid fa-shield-halved text-emerald-600 mt-0.5 shrink-0"></i>
-                <span><strong>Tr 100 años:</strong> Escenario base para obras de control macro-estructural y delimitación de fajas de inundación.</span>
-              </li>
-            </ul>
-          </div>
+          <canvas id="canvasHidrogramas" class="w-full h-full opacity-0 transition-opacity duration-300"></canvas>
         </div>
       </div>
     </div>
@@ -86,117 +94,154 @@
   </div>
 
   <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <div class="flex items-center gap-6">
-      <span class="text-[10px] text-slate-400 font-bold tracking-wider">Autores:</span>
+    <div class="flex items-center gap-6"><span class="text-[10px] text-slate-400 font-bold tracking-wider">Autores:</span>
       <div class="flex items-center gap-6 h-6">
-        <img src="img/logo_senamhi.png" alt="SENAMHI" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
-        <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
-        <img src="img/logo_sei.png" alt="SEI" class="h-6 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
-        <img src="img/logo_BID.png" alt="BID" class="h-5 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/logo_senamhi.png" alt="SENAMHI" class="h-full w-auto object-contain brightness-0 invert opacity-75">
+        <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="h-full w-auto object-contain brightness-0 invert opacity-75">
+        <img src="img/logo_sei.png" alt="SEI" class="h-6 w-auto object-contain brightness-0 invert opacity-75">
+        <img src="img/logo_BID.png" alt="BID" class="h-5 w-auto object-contain brightness-0 invert opacity-75">
       </div>
     </div>
   </footer>
 
   <script>
-    let miGrafico = null;
-    const ctx = document.getElementById('canvasEventos').getContext('2d');
+    const urlExcel = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/ea28397270357fc86daf5f673cb0321f8b3a3942/charts/Datos%20Ventana%20Eventos%20Inundacion.xlsx";
+    
+    let chartIDF = null, chartHidro = null;
+    let datosIDFOriginales = [], datosHidroOriginales = [];
+    let labelsIDF = [], labelsHidro = [];
+    const coloresIDF = { "1 año": "#93c5fd", "2 años": "#60a5fa", "5 años": "#3b82f6", "10 años": "#2563eb", "25 años": "#1d4ed8", "50 años": "#1e40af", "100 años": "#1e3a8a", "500 años": "#0f172a" };
+    const coloresHidro = { "1 año": "#a7f3d0", "2 años": "#6ee7b7", "5 años": "#34d399", "10 años": "#10b981", "25 años": "#059669", "50 años": "#047857", "100 años": "#065f46", "500 años": "#022c22" };    
+    let seleccionadosIDF = ["1 año"]; 
+    let seleccionadosHidro = ["1 año"];
 
-    // Paleta cromática corporativa unificada para los periodos de retorno
-    const coloresTr = {
-      '1a': '#94a3b8',   '2a': '#38bdf8',   '5a': '#0ea5e9',
-      '10a': '#0284c7',  '25a': '#f59e0b',  '50a': '#ea580c',
-      '100a': '#ef4444', '500a': '#b91c1c'
-    };
+    document.addEventListener("DOMContentLoaded", function() {
+      fetch(urlExcel)
+        .then(res => res.arrayBuffer())
+        .then(buffer => {
+          const workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
+          
+          datosIDFOriginales = XLSX.utils.sheet_to_json(workbook.Sheets["Figura 1"]);
+          datosHidroOriginales = XLSX.utils.sheet_to_json(workbook.Sheets["Figura 2"]);
 
-    // --- DATA CONFIGURATION DE FIGURA 1 (Curvas IDF) ---
-    const dataFigura1 = {
-      labels: ['60 min', '120 min', '180 min', '360 min', '720 min', '1080 min', '1440 min'],
-      datasets: [
-        { label: '1 año', data: [40.05, 25.60, 20.01, 14.20, 7.64, 4.89, 3.82], borderColor: coloresTr['1a'], backgroundColor: coloresTr['1a'], tension: 0.1, borderWidth: 2 },
-        { label: '2 años', data: [64.11, 39.46, 28.48, 17.48, 9.99, 6.94, 5.56], borderColor: coloresTr['2a'], backgroundColor: coloresTr['2a'], tension: 0.1, borderWidth: 2 },
-        { label: '5 años', data: [79.90, 48.55, 34.03, 19.64, 11.53, 8.29, 6.71], borderColor: coloresTr['5a'], backgroundColor: coloresTr['5a'], tension: 0.1, borderWidth: 2 },
-        { label: '10 años', data: [88.16, 53.30, 36.94, 20.77, 12.34, 8.99, 7.31], borderColor: coloresTr['10a'], backgroundColor: coloresTr['10a'], tension: 0.1, borderWidth: 2 },
-        { label: '25 años', data: [96.96, 58.37, 40.04, 21.97, 13.20, 9.74, 7.95], borderColor: coloresTr['25a'], backgroundColor: coloresTr['25a'], tension: 0.1, borderWidth: 2 },
-        { label: '50 años', data: [102.65, 61.65, 42.04, 22.75, 13.75, 10.23, 8.37], borderColor: coloresTr['50a'], backgroundColor: coloresTr['50a'], tension: 0.1, borderWidth: 2 },
-        { label: '100 años', data: [107.76, 64.59, 43.84, 23.45, 14.25, 10.66, 8.58], borderColor: coloresTr['100a'], backgroundColor: coloresTr['100a'], tension: 0.1, borderWidth: 2 },
-        { label: '500 años', data: [118.12, 70.55, 47.48, 24.86, 15.26, 11.54, 9.33], borderColor: coloresTr['500a'], backgroundColor: coloresTr['500a'], tension: 0.1, borderWidth: 2 }
-      ]
-    };
+          labelsIDF = datosIDFOriginales.map(row => `${row["Minutos"] || row["_1"]} min`);
+          labelsHidro = datosHidroOriginales.map(row => row["Tiempo"] || row["_0"]);
 
-    // --- DATA CONFIGURATION DE FIGURA 2 (Hidrogramas) ---
-    const dataFigura2 = {
-      labels: ['30', '60', '90', '120', '300', '600', '900', '1200'],
-      datasets: [
-        { label: '1 año', data: [211.9, 212.7, 213.5, 214.3, 218.4, 222.8, 221.1, 213.1], borderColor: coloresTr['1a'], backgroundColor: coloresTr['1a'], tension: 0.2, borderWidth: 2 },
-        { label: '2 años', data: [925.8, 929.2, 932.7, 936.2, 954.1, 973.3, 966.1, 931.2], borderColor: coloresTr['2a'], backgroundColor: coloresTr['2a'], tension: 0.2, borderWidth: 2 },
-        { label: '5 años', data: [1258.8, 1263.5, 1268.3, 1273.0, 1297.3, 1323.5, 1313.7, 1266.2], borderColor: coloresTr['5a'], backgroundColor: coloresTr['5a'], tension: 0.2, borderWidth: 2 },
-        { label: '10 años', data: [1501.3, 1506.9, 1512.6, 1518.3, 1547.3, 1578.6, 1566.9, 1510.1], borderColor: coloresTr['10a'], backgroundColor: coloresTr['10a'], tension: 0.2, borderWidth: 2 },
-        { label: '25 años', data: [1833.6, 1840.5, 1847.5, 1854.4, 1889.9, 1928.1, 1913.8, 1844.4], borderColor: coloresTr['25a'], backgroundColor: coloresTr['25a'], tension: 0.2, borderWidth: 2 },
-        { label: '50 años', data: [2100.6, 2108.6, 2116.6, 2124.6, 2165.2, 2209.1, 2192.6, 2113.0], borderColor: coloresTr['50a'], backgroundColor: coloresTr['50a'], tension: 0.2, borderWidth: 2 },
-        { label: '100 años', data: [2384.9, 2393.9, 2402.9, 2412.0, 2458.1, 2507.9, 2489.2, 2398.8], borderColor: coloresTr['100a'], backgroundColor: coloresTr['100a'], tension: 0.2, borderWidth: 2 },
-        { label: '500 años', data: [3125.3, 3137.1, 3149.0, 3160.8, 3221.3, 3286.6, 3262.1, 3143.7], borderColor: coloresTr['500a'], backgroundColor: coloresTr['500a'], tension: 0.2, borderWidth: 2 }
-      ]
-    };
+          poblarSelectores();
+          inicializarGraficos();
+        });
+    });
 
-    // Inicializar cargando el primer gráfico
-    renderizarGrafico(1, dataFigura1, 'Precipitación (mm/hr)', 'Minutos');
+    function poblarSelectores() {
+      const periodos = Object.keys(coloresIDF);
+      ['selectIDF', 'selectHidro'].forEach(id => {
+        const select = document.getElementById(id);
+        periodos.forEach(p => {
+          let opt = document.createElement("option");
+          opt.value = p; opt.innerText = p;
+          select.appendChild(opt);
+        });
+      });
+    }
 
-    function renderizarGrafico(tipo, dataEstructura, yTitle, xTitle) {
-      if (miGrafico) { miGrafico.destroy(); }
+    function inicializarGraficos() {
+      document.getElementById('loadingIDF').remove();
+      document.getElementById('loadingHidro').remove();
       
-      miGrafico = new Chart(ctx, {
+      chartIDF = crearEstructuraChart(document.getElementById('canvasIDF'), labelsIDF, 'Precipitación (mm/hr)');
+      chartHidro = crearEstructuraChart(document.getElementById('canvasHidrogramas'), labelsHidro, 'Caudal (m³/s)');
+
+      actualizarUI('idf');
+      actualizarUI('hidro');
+    }
+
+    function crearEstructuraChart(canvas, labels, yTitle) {
+      canvas.classList.remove('opacity-0');
+      return new Chart(canvas.getContext('2d'), {
         type: 'line',
-        data: dataEstructura,
+        data: { labels: labels, datasets: [] },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: 'top',
-              labels: { font: { size: 10, family: 'sans-serif' }, boxWidth: 12, padding: 8 }
-            }
-          },
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
           scales: {
-            x: {
-              title: { display: true, text: xTitle, font: { size: 11, weight: 'bold' } },
-              grid: { color: '#f1f5f9' },
-              ticks: { font: { size: 10 } }
-            },
-            y: {
-              title: { display: true, text: yTitle, font: { size: 11, weight: 'bold' } },
-              grid: { color: '#f1f5f9' },
-              ticks: { font: { size: 10 } }
-            }
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 } } },
+            y: { title: { display: true, text: yTitle, font: { size: 10, weight: 'bold' } }, grid: { color: '#f1f5f9' }, ticks: { font: { size: 9 } } }
           }
         }
       });
     }
 
-    function cambiarGrafico(id) {
-      const t1 = document.getElementById('tab1');
-      const t2 = document.getElementById('tab2');
-      const iTitle = document.getElementById('infoTitle');
-      const iBody = document.getElementById('infoBody');
-
-      if (id === 1) {
-        // UI Tabs activos
-        t1.className = "px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm";
-        t2.className = "px-3 py-1.5 rounded-md transition-all text-slate-500 hover:text-slate-800";
-        // Cambio de descripciones contextuales
-        iTitle.innerText = "Curvas IDF (Figura 1)";
-        iBody.innerText = "Muestra las curvas de Intensidad-Duración-Frecuencia calculadas para Cobija. A menor duración del evento de tormenta, la tasa de precipitación (mm/hr) incrementa exponencialmente, alcanzando umbrales críticos de saturación en periodos de retorno elevados (Tr 100 y 500 años).";
-        // Renderizado
-        renderizarGrafico(1, dataFigura1, 'Precipitación (mm/hr)', 'Minutos');
-      } else {
-        // UI Tabs activos
-        t2.className = "px-3 py-1.5 rounded-md transition-all bg-white text-blue-600 shadow-sm";
-        t1.className = "px-3 py-1.5 rounded-md transition-all text-slate-500 hover:text-slate-800";
-        // Cambio de descripciones contextuales
-        iTitle.innerText = "Hidrogramas de Escorrentía (Figura 2)";
-        iBody.innerText = "Expresa la simulación del caudal total (m³/s) que circula por el tramo del río en función del tiempo transcurrido. Se aprecia el hidrograma completo y el tiempo al pico, donde el Tr de 500 años genera caudales pico que superan los 3200 m³/s.";
-        // Renderizado
-        renderizarGrafico(2, dataFigura2, 'Caudal (m3/s)', 'Tiempo');
+    function adicionarPeriodo(tipo, periodo) {
+      let lista = (tipo === 'idf') ? seleccionadosIDF : seleccionadosHidro;
+      if (!lista.includes(periodo)) {
+        lista.push(periodo);
+        actualizarUI(tipo);
       }
+    }
+
+    function removerPeriodo(tipo, periodo) {
+      if (tipo === 'idf') {
+        seleccionadosIDF = seleccionadosIDF.filter(p => p !== periodo);
+      } else {
+        seleccionadosHidro = seleccionadosHidro.filter(p => p !== periodo);
+      }
+      actualizarUI(tipo);
+    }
+
+    function actualizarUI(tipo) {
+      const isIdf = (tipo === 'idf');
+      const chart = isIdf ? chartIDF : chartHidro;
+      const seleccionados = isIdf ? seleccionadosIDF : seleccionadosHidro;
+      const datosOriginales = isIdf ? datosIDFOriginales : datosHidroOriginales;
+      const paleta = isIdf ? coloresIDF : coloresHidro;
+      const tagContainer = document.getElementById(isIdf ? 'tagsIDF' : 'tagsHidro');
+
+      chart.data.datasets = seleccionados.map(periodo => ({
+        label: periodo,
+        data: datosOriginales.map(row => parseFloat(row[periodo])),
+        borderColor: paleta[periodo],
+        backgroundColor: paleta[periodo],
+        pointRadius: 0, hoverRadius: 5, borderWidth: 2.5, tension: 0.15
+      }));
+      chart.update();
+
+      tagContainer.innerHTML = "";
+      seleccionados.forEach(periodo => {
+        const bgBadge = isIdf ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+        tagContainer.innerHTML += `
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium border ${bgBadge}">
+            ${periodo}
+            <button onclick="removerPeriodo('${tipo}', '${periodo}')" class="hover:text-red-500 font-bold ml-0.5 transition-all">×</button>
+          </span>`;
+      });
+    }
+
+    function exportarCSVFiltrado(tipo) {
+      const isIdf = (tipo === 'idf');
+      const seleccionados = isIdf ? seleccionadosIDF : seleccionadosHidro;
+      const datosOriginales = isIdf ? datosIDFOriginales : datosHidroOriginales;
+      const xColName = isIdf ? "Minutos" : "Tiempo";
+
+      if (seleccionados.length === 0) {
+        alert("Por favor adicione al menos un periodo de retorno para poder exportar.");
+        return;
+      }
+
+      let filasCSV = [[xColName, ...seleccionados].join(",")];
+
+      datosOriginales.forEach(row => {
+        let fila = [row[xColName]];
+        seleccionados.forEach(p => fila.push(row[p]));
+        filasCSV.push(fila.join(","));
+      });
+
+      const blob = new Blob([filasCSV.join("\n")], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", isIdf ? "Seleccion_Curvas_IDF.csv" : "Seleccion_Hidrogramas_Acre.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
