@@ -11,48 +11,66 @@
 </head>
 <body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
 
-  <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
-    <div class="flex items-center gap-3 w-1/4">
-      <img src="logo-inst1.png" alt="Logo" class="h-6 w-auto">
-      <img src="logo-inst2.png" alt="Logo" class="h-10 w-auto">
-    </div>
-    
-    <nav class="flex h-full items-center gap-6 text-xs tracking-tight text-slate-400">
+  <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
+    <nav class="flex h-full items-center gap-8 text-xs tracking-tight text-slate-400">
       <a href="index.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-house mr-1.5"></i> Inicio</a>
       <a href="area_estudio.html" class="h-full flex items-center px-1 border-b-2 border-blue-500 text-blue-400 font-bold transition-all"><i class="fa-solid fa-map-location-dot mr-1.5"></i> Área de Estudio</a>
       <a href="eventos_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-chart-line mr-1.5"></i> Análisis de Eventos</a>
       <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>
       <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
     </nav>
-    <div class="w-1/4 text-right"><span class="text-white font-bold text-xs uppercase tracking-wider">SEI - SENAMHI</span></div>
   </header>
 
-  <div class="flex-1 px-4 pb-2 overflow-y-auto animate-fadeIn">
-    <div class="max-w-7xl mx-auto my-4 grid grid-cols-12 gap-6 h-[calc(100vh-6rem)]">
-      <div class="col-span-6 flex flex-col gap-4 h-full">
-        <div class="dashboard-panel p-3 bg-white flex-1 flex flex-col">
-          <div class="flex-1 w-full rounded-lg border bg-slate-50 overflow-hidden">
-            <img src="imagen-estudio1.png" alt="" class="w-full h-full object-cover">
-          </div>
-        </div>
-        <div class="dashboard-panel p-3 bg-white flex-1 flex flex-col">
-          <div class="flex-1 w-full rounded-lg border bg-slate-50 overflow-hidden">
-            <img src="imagen-estudio2.png" alt="" class="w-full h-full object-cover">
+  <div class="flex-1 px-4 pb-2 flex items-center justify-center overflow-hidden">
+    <div class="w-full max-w-7xl flex gap-6 h-[calc(100vh-8rem)] items-center">
+      
+      <div class="w-[70%] h-full flex flex-col justify-center">
+        <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
+          <span class="text-[14px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-3">Área de Estudio</span>
+          
+          <div class="flex-1 w-full rounded-lg border bg-slate-100 overflow-hidden flex items-center justify-center shadow-inner relative p-2">
+            <img src="img/Area_Estudio_Acre.png" alt="Mapas de la cuenca del Río Acre y Cobija" class="w-full h-full object-contain">
           </div>
         </div>
       </div>
-      <div class="col-span-6 flex flex-col h-full">
-        <div class="dashboard-panel p-6 bg-white flex-1 overflow-y-auto">
-          <p class="text-xs text-slate-600 leading-relaxed font-medium text-justify">
-            La cuenca del río Acre es una importante región amazónica compartida por Bolivia, Brasil y Perú, con una superficie aproximada de 7.182 km² en el área de estudio. El río Acre nace en las estribaciones andinas del sureste de Perú, cerca de la frontera con Bolivia, y recorre alrededor de 645 kilómetros antes de desembocar en el río Purús. En su tramo inicial, forma parte de la frontera entre Bolivia y Brasil. La cuenca se caracteriza por extensas planicies y suaves colinas, con altitudes que varían entre 177 y 413 metros sobre el nivel del mar, lo que favorece la presencia de humedales, la recarga de aguas subterráneas y una gran riqueza de flora y fauna. Su clima tropical húmedo genera lluvias abundantes durante gran parte del año, provocando crecidas estacionales e inundaciones recurrentes, especialmente en las ciudades de Cobija (Bolivia), Brasiléia y Epitaciolândia (Brasil), donde la cercanía de la población al río incrementa la exposición a estos eventos. Por su importancia para el abastecimiento de agua, la conservación de los ecosistemas amazónicos y la gestión del riesgo de inundaciones, la cuenca del río Acre constituye un territorio estratégico para la cooperación y el desarrollo sostenible entre los tres países que la comparten.
-          </p>
+      
+      <div class="w-[30%] h-full flex flex-col justify-center">
+        <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
+          <span class="text-[14px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-3">Descripción General</span>
+          
+          <div class="flex-1 overflow-y-auto pr-1 text-slate-700 text-xs leading-relaxed space-y-3 align-justify text-justify">
+            <p>
+              La cuenca del río Acre es una importante región amazónica compartida por Bolivia, Brasil y Perú, con una superficie aproximada de 7.182 km² en el área de estudio.
+            </p>
+            <p>
+              El río Acre nace en las estribaciones andinas del sureste de Perú, cerca de la frontera con Bolivia, y recorre alrededor de 645 kilómetros antes de desembocar en el río Purús. En su tramo inicial, forma parte de la frontera entre Bolivia y Brasil.
+            </p>
+            <p>
+              La cuenca se caracteriza por extensas planicies y suaves colinas, con altitudes que varían entre 177 y 413 metros sobre el nivel del mar, lo que favorece la presencia de humedales, la recarga de aguas subterráneas y una gran riqueza de flora y fauna.
+            </p>
+            <p>
+              Su clima tropical húmedo genera lluvias abundantes durante gran parte del año, provocando crecidas estacionales e inundaciones recurrentes, especialmente en las ciudades de Cobija (Bolivia), Brasiléia y Epitaciolândia (Brasil), donde la cercanía de la población al río incrementa la exposición a estos eventos.
+            </p>
+            <p>
+              Por su importancia para el abastecimiento de agua, la conservación de los ecosistemas amazónicos y la gestión del riesgo de inundaciones, la cuenca del río Acre constituye un territorio estratégico para la cooperación y el desarrollo sostenible entre los tres países que la comparten.
+            </p>
+          </div>
         </div>
       </div>
+
     </div>
   </div>
 
-  <footer class="h-10 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <span class="text-[10px] text-slate-400 font-medium">SENAMHI © 2026</span>
+  <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
+    <div class="flex items-center gap-6">
+      <span class="text-[10px] text-slate-400 font-bold tracking-wider">Autores:</span>
+      <div class="flex items-center gap-6 h-6">
+        <img src="img/logo_senamhi.png" alt="SENAMHI" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/logo_sei.png" alt="SEI" class="h-6 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/logo_BID.png" alt="BID" class="h-5 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+      </div>
+    </div>
   </footer>
 </body>
 </html>
