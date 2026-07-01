@@ -1,7 +1,9 @@
 // ==========================================
 // 1. CONFIGURACIÓN DEL MAPA Y TODOS LOS BASEMAPS ORIGINALES
 // ==========================================
-var map = L.map('map', { zoomControl: false }).setView([-11.0, -68.7], 12);
+
+var map = L.map('map', { zoomControl: false }).setView([-11.018, -68.752], 13);
+L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 // Capas de mapas base independientes
 var capasMapasBase = {
