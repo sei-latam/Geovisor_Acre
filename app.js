@@ -266,7 +266,7 @@ function actualizarLeyendaDinamica() {
   geeOverlayContainer.innerHTML = "";
   
   if (historialConsultas.length === 0 && !consultaActualTemporal) {
-    contenedorLeyenda.innerHTML = `<span class="text-slate-400 italic">Ningún modelo cargado</span>`;
+    contenedorLeyenda.innerHTML = `<span class="text-slate-400 italic">Ninguna capa cargada</span>`;
     geeOverlayContainer.innerHTML = `<span class="text-slate-400 italic text-[11px]">No hay capas en el historial.</span>`;
     return;
   }

@@ -86,32 +86,32 @@
         
         <div class="flex gap-2">
           <button onclick="toggleWidget('panelCapasGEE')" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Capas Activas</span>
+            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Gestor de Capas</span>
           </button>
           <button onclick="toggleLeyenda()" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Ver Leyenda</span>
+            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Leyenda</span>
           </button>
         </div>
 
         <div id="panelCapasGEE" class="hidden bg-white border border-slate-200 rounded-xl shadow-2xl w-72 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
           <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Gestor de Capas (GEE Style)</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Capas Seleccionadas</span>
             <button onclick="toggleWidget('panelCapasGEE')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
           </div>
           <div class="p-3 bg-slate-50 max-h-64 overflow-y-auto tabla-scroll flex flex-col gap-3">
             <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Mapa Base Global</span>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider block mb-1.5">Mapa Base Global</span>
               <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm"></div>
             </div>
             <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Capas WMS en el Comparador</span>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider block mb-1.5">Capas Disponibles</span>
               <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5"></div>
             </div>
           </div>
         </div>
 
         <div id="panelLeyenda" class="hidden bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-lg shadow-xl w-56 text-slate-700">
-          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b pb-1 mb-2">Estado de Capas Activas</div>
+          <div class="text-[11px] font-bold text-slate-900 tracking-wider border-b pb-1 mb-2">Leyenda y simbología</div>
           <div id="leyendaContenedorDinamico" class="flex flex-col gap-1.5 text-xs">
             <span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>
           </div>
