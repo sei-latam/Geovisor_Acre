@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Geovisor - Análisis de Eventos</title>
+  <title>COAST Geovisor - Análisis de Eventos</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   <link rel="stylesheet" href="index.css">
@@ -31,8 +31,8 @@
         <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <i class="text-blue-500 text-xs"></i>
-              <span class="text-[14px] font-bold text-slate-900 tracking-wider">Curvas IDF</span>
+              <i class="fa-solid fa-cloud-showers-heavy text-blue-500 text-xs"></i>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider uppercase">Curvas IDF (Cobija)</span>
             </div>
             <button onclick="exportarCSVFiltrado('idf')" class="text-[10px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded font-bold transition-all flex items-center gap-1">
               <i class="fa-solid fa-download"></i> Exportar Selección CSV
@@ -44,6 +44,10 @@
             <select id="selectIDF" onchange="adicionarPeriodo('idf', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-blue-500 cursor-pointer flex-1">
               <option value="" disabled selected>Seleccione un periodo de retorno...</option>
             </select>
+            <div class="flex items-center gap-1 text-[10px] shrink-0 ml-1">
+              <button onclick="alternarTodos('idf', true)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 font-medium transition-all" title="Activar todos los escenarios"><i class="fa-solid fa-eye mr-0.5"></i> Todos</button>
+              <button onclick="alternarTodos('idf', false)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 font-medium transition-all" title="Desactivar todos los escenarios"><i class="fa-solid fa-eye-slash mr-0.5"></i> Ninguno</button>
+            </div>
           </div>
           
           <div id="tagsIDF" class="flex flex-wrap gap-1 min-h-[24px]"></div>
@@ -64,8 +68,8 @@
         <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <i class="text-emerald-500 text-xs"></i>
-              <span class="text-[14px] font-bold text-slate-900 tracking-wider">Avenidas Acre - Periodo de Retorno</span>
+              <i class="fa-solid fa-water text-emerald-500 text-xs"></i>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider uppercase">Hidrogramas por Periodo de Retorno</span>
             </div>
             <button onclick="exportarCSVFiltrado('hidro')" class="text-[10px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded font-bold transition-all flex items-center gap-1">
               <i class="fa-solid fa-download"></i> Exportar Selección CSV
@@ -77,6 +81,10 @@
             <select id="selectHidro" onchange="adicionarPeriodo('hidro', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-emerald-500 cursor-pointer flex-1">
               <option value="" disabled selected>Seleccione un periodo de retorno...</option>
             </select>
+            <div class="flex items-center gap-1 text-[10px] shrink-0 ml-1">
+              <button onclick="alternarTodos('hidro', true)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 font-medium transition-all" title="Activar todos los escenarios"><i class="fa-solid fa-eye mr-0.5"></i> Todos</button>
+              <button onclick="alternarTodos('hidro', false)" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 rounded text-slate-600 font-medium transition-all" title="Desactivar todos los escenarios"><i class="fa-solid fa-eye-slash mr-0.5"></i> Ninguno</button>
+            </div>
           </div>
           
           <div id="tagsHidro" class="flex flex-wrap gap-1 min-h-[24px]"></div>
@@ -110,8 +118,12 @@
     let chartIDF = null, chartHidro = null;
     let datosIDFOriginales = [], datosHidroOriginales = [];
     let labelsIDF = [], labelsHidro = [];
+
+    // Paletas de color unificadas
     const coloresIDF = { "1 año": "#93c5fd", "2 años": "#60a5fa", "5 años": "#3b82f6", "10 años": "#2563eb", "25 años": "#1d4ed8", "50 años": "#1e40af", "100 años": "#1e3a8a", "500 años": "#0f172a" };
-    const coloresHidro = { "1 año": "#a7f3d0", "2 años": "#6ee7b7", "5 años": "#34d399", "10 años": "#10b981", "25 años": "#059669", "50 años": "#047857", "100 años": "#065f46", "500 años": "#022c22" };    
+    const coloresHidro = { "1 año": "#a7f3d0", "2 años": "#6ee7b7", "5 años": "#34d399", "10 años": "#10b981", "25 años": "#059669", "50 años": "#047857", "100 años": "#065f46", "500 años": "#022c22" };
+    
+    // Control de selección activa en pantalla
     let seleccionadosIDF = ["1 año"]; 
     let seleccionadosHidro = ["1 año"];
 
@@ -171,6 +183,7 @@
       });
     }
 
+    // --- ACCIONES DENTRO DEL UI SELECT (ADICIONAR / ELIMINAR / ACCIONES RÁPIDAS) ---
     function adicionarPeriodo(tipo, periodo) {
       let lista = (tipo === 'idf') ? seleccionadosIDF : seleccionadosHidro;
       if (!lista.includes(periodo)) {
@@ -188,6 +201,18 @@
       actualizarUI(tipo);
     }
 
+    // Nueva función unificada que recupera la acción masiva "Todos" / "Ninguno"
+    function alternarTodos(tipo, agregarTodos) {
+      const todosLosPeriodos = Object.keys(coloresIDF);
+      if (tipo === 'idf') {
+        seleccionadosIDF = agregarTodos ? [...todosLosPeriodos] : [];
+      } else {
+        seleccionadosHidro = agregarTodos ? [...todosLosPeriodos] : [];
+      }
+      actualizarUI(tipo);
+    }
+
+    // --- SINCRONIZADOR DE GRÁFICOS Y TAGS ---
     function actualizarUI(tipo) {
       const isIdf = (tipo === 'idf');
       const chart = isIdf ? chartIDF : chartHidro;
@@ -196,6 +221,7 @@
       const paleta = isIdf ? coloresIDF : coloresHidro;
       const tagContainer = document.getElementById(isIdf ? 'tagsIDF' : 'tagsHidro');
 
+      // 1. Reconstruir datasets del Chart.js según selección
       chart.data.datasets = seleccionados.map(periodo => ({
         label: periodo,
         data: datosOriginales.map(row => parseFloat(row[periodo])),
@@ -205,6 +231,7 @@
       }));
       chart.update();
 
+      // 2. Renderizar Tags interactivos con botón de borrado (X)
       tagContainer.innerHTML = "";
       seleccionados.forEach(periodo => {
         const bgBadge = isIdf ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -216,6 +243,7 @@
       });
     }
 
+    // --- EXPORTAR EXCLUSIVAMENTE LA SELECCIÓN ACTIVA A CSV ---
     function exportarCSVFiltrado(tipo) {
       const isIdf = (tipo === 'idf');
       const seleccionados = isIdf ? seleccionadosIDF : seleccionadosHidro;
