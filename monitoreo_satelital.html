@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <title>Geovisor - Monitoreo Satelital</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="logo-inst3.png">
+  <link class="icon" type="image/png" href="logo-inst3.png">
   <link rel="stylesheet" href="index.css">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -85,32 +85,51 @@
         
         <div class="flex gap-2">
           <button onclick="toggleWidget('panelCapasGEE')" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Capas Activas</span>
+            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Gestor de Capas</span>
           </button>
           <button onclick="toggleLeyenda()" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Ver Leyenda</span>
+            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Leyenda</span>
           </button>
         </div>
 
         <div id="panelCapasGEE" class="hidden bg-white border border-slate-200 rounded-xl shadow-2xl w-72 flex flex-col text-slate-700 overflow-hidden animate-fadeIn">
           <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Gestor de Capas (GEE Style)</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Gestor de Capas</span>
             <button onclick="toggleWidget('panelCapasGEE')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
           </div>
           <div class="p-3 bg-slate-50 max-h-64 overflow-y-auto tabla-scroll flex flex-col gap-3">
+            
             <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Mapa Base Global</span>
-              <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm"></div>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider block mb-1.5">Capas disponibles</span>
+              <div class="flex flex-col gap-1.5">
+                <div class="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg shadow-sm">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-water text-emerald-500 text-xs"></i>
+                    <span class="text-[11px] font-bold text-slate-700">Evento Inundación 2023-03-25</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chkRaster1" class="sr-only peer">
+                    <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                  </label>
+                </div>
+                <div class="flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg shadow-sm">
+                  <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-water text-blue-500 text-xs"></i>
+                    <span class="text-[11px] font-bold text-slate-700">Evento Inundación 2024-02-24</span>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="chkRaster2" class="sr-only peer">
+                    <div class="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
             </div>
-            <div>
-              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Capas WMS en el Comparador</span>
-              <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5"></div>
-            </div>
+
           </div>
         </div>
 
         <div id="panelLeyenda" class="hidden bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-lg shadow-xl w-56 text-slate-700">
-          <div class="text-[11px] font-bold text-slate-500 uppercase tracking-wider border-b pb-1 mb-2">Estado de Capas Activas</div>
+          <div class="text-[11px] font-bold text-slate-900 tracking-wider border-b pb-1 mb-2">Leyenda</div>
           <div id="leyendaContenedorDinamico" class="flex flex-col gap-1.5 text-xs">
             <span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>
           </div>
@@ -120,7 +139,7 @@
 
     <div class="w-[60%] h-full flex flex-col">
       <div class="p-3 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col overflow-hidden">
-        <span class="text-[14spx] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-2">Metodología Utilizada</span>
+        <span class="text-[14px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-2">Metodología Utilizada</span>
         <div class="flex-1 w-full rounded-lg border bg-slate-50 overflow-hidden flex items-center justify-center p-2 shadow-inner">
           <img src="img/metodologia.png" alt="Metodología" class="w-full h-full object-contain">
         </div>
@@ -142,6 +161,6 @@
   </footer>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="app.js"></script>
+  <script src="monitoreo.js"></script>
 </body>
 </html>
