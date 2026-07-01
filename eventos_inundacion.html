@@ -31,8 +31,8 @@
         <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <i class="fa-solid fa-cloud-showers-heavy text-blue-500 text-xs"></i>
-              <span class="text-[10px] font-bold text-slate-900 tracking-wider uppercase">Curvas IDF (Cobija)</span>
+              <i class="text-blue-500 text-xs"></i>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider">Curvas IDF</span>
             </div>
             <button onclick="exportarCSVFiltrado('idf')" class="text-[10px] px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded font-bold transition-all flex items-center gap-1">
               <i class="fa-solid fa-download"></i> Exportar Selección CSV
@@ -40,7 +40,7 @@
           </div>
           
           <div class="flex items-center gap-2">
-            <label class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Adicionar Escenario:</label>
+            <label class="text-[10px] font-bold text-slate-900 shrink-0">Adicionar Escenario:</label>
             <select id="selectIDF" onchange="adicionarPeriodo('idf', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-blue-500 cursor-pointer flex-1">
               <option value="" disabled selected>Seleccione un periodo de retorno...</option>
             </select>
@@ -68,8 +68,8 @@
         <div class="border-b pb-3 mb-2 shrink-0 space-y-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <i class="fa-solid fa-water text-emerald-500 text-xs"></i>
-              <span class="text-[10px] font-bold text-slate-900 tracking-wider uppercase">Hidrogramas por Periodo de Retorno</span>
+              <i class="text-emerald-500 text-xs"></i>
+              <span class="text-[10px] font-bold text-slate-900 tracking-wider">Períodos de Retorno Río Acre</span>
             </div>
             <button onclick="exportarCSVFiltrado('hidro')" class="text-[10px] px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 rounded font-bold transition-all flex items-center gap-1">
               <i class="fa-solid fa-download"></i> Exportar Selección CSV
@@ -77,7 +77,7 @@
           </div>
           
           <div class="flex items-center gap-2">
-            <label class="text-[10px] font-bold text-slate-400 uppercase shrink-0">Adicionar Escenario:</label>
+            <label class="text-[10px] font-bold text-slate-900 shrink-0">Adicionar Escenario:</label>
             <select id="selectHidro" onchange="adicionarPeriodo('hidro', this.value); this.value='';" class="text-xs bg-slate-50 border border-slate-200 rounded px-2 py-1 text-slate-700 outline-none focus:border-emerald-500 cursor-pointer flex-1">
               <option value="" disabled selected>Seleccione un periodo de retorno...</option>
             </select>
