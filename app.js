@@ -49,11 +49,11 @@ var historialConsultas = [];
 const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
 
 var dbExcelPlanes = {
-  tr2:    { min: 0.0000, max: 12.2199, archivo: "depth_TR2.csv", capa: "rio_acre_manchas:depth_tr2" },
-  tr10:   { min: 0.0000, max: 14.5453, archivo: "depth_TR10.csv", capa: "rio_acre_manchas:depth_tr10" },
-  tr50:   { min: 0.0000, max: 16.1415, archivo: "depth_TR50.csv", capa: "rio_acre_manchas:depth_tr50" },
-  tr100:  { min: 0.0000, max: 16.7478, archivo: "depth_TR100.csv", capa: "rio_acre_manchas:depth_tr100" },
-  tr2023: { min: 0.0000, max: 12.3294, archivo: "depth_TR2023.csv", capa: "rio_acre_manchas:depth_tr2023" }
+  tr2:    { min: 0.0000, max: 12.2199, archivo: "depth_TR2.csv", capa: "rio_acre_manchas:depth_tr2", capaSuffix: "TR02" },
+  tr10:   { min: 0.0000, max: 14.5453, archivo: "depth_TR10.csv", capa: "rio_acre_manchas:depth_tr10", capaSuffix: "TR10" },
+  tr50:   { min: 0.0000, max: 16.1415, archivo: "depth_TR50.csv", capa: "rio_acre_manchas:depth_tr50", capaSuffix: "TR50" },
+  tr100:  { min: 0.0000, max: 16.7478, archivo: "depth_TR100.csv", capa: "rio_acre_manchas:depth_tr100", capaSuffix: "TR100" },
+  tr2023: { min: 0.0000, max: 12.3294, archivo: "depth_TR2023.csv", capa: "rio_acre_manchas:depth_tr2023", capaSuffix: "TR2023" }
 };
 
 var capasDibujo = L.featureGroup().addTo(map);
