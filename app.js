@@ -103,32 +103,28 @@ function toggleWidget(idPanel) {
   document.getElementById(idPanel).classList.toggle('hidden');
 }
 
+// =========================================================================
+// URL BASE CORREGIDA Y DICCIONARIO DE DATOS CSV REALES DESDE GITHUB
+// =========================================================================
+const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
+
 var dbExcelPlanes = {
-  p01: { min: 177.0735, max: 186.5382, length: 95 },
-  p02: { min: 177.9383, max: 186.7893, length: 325 },
-  p03: { min: 177.1497, max: 188.7584, length: 95 },
-  p04: { min: 178.0590, max: 190.3933, length: 95 },
-  p05: { min: 178.0618, max: 191.0609, length: 95 }
+  tr2:    { min: 0.0000, max: 12.2199, archivo: "depth_TR2.csv", capa: "rio_acre_manchas:depth_tr2" },
+  tr10:   { min: 0.0000, max: 14.5453, archivo: "depth_TR10.csv", capa: "rio_acre_manchas:depth_tr10" },
+  tr50:   { min: 0.0000, max: 16.1415, archivo: "depth_TR50.csv", capa: "rio_acre_manchas:depth_tr50" },
+  tr100:  { min: 0.0000, max: 16.7478, archivo: "depth_TR100.csv", capa: "rio_acre_manchas:depth_tr100" },
+  tr2023: { min: 0.0000, max: 12.3294, archivo: "depth_TR2023.csv", capa: "rio_acre_manchas:depth_tr2023" }
 };
 
-function generarCurvaExcel(planID) {
-  var meta = dbExcelPlanes[planID]; var puntos = [];
-  for (var i = 1; i <= meta.length; i++) {
-    var t = i / meta.length;
-    var variacion = (meta.max - meta.min) * Math.pow(Math.sin(t * Math.PI * 0.95), 2.2);
-    var wselCalculado = meta.min + variacion + (Math.sin(i * 0.5) * 0.08);
-    var totalMinutos = (i - 1) * 15; var hora = Math.floor(totalMinutos / 60); var min = totalMinutos % 60;
-    puntos.push({ step: i, wsel: parseFloat(Math.min(meta.max, Math.max(meta.min, wselCalculado)).toFixed(4)), date: `19APR ${String(hora).padStart(2, '0')}:${String(min).padStart(2, '0')}:00` });
-  }
-  return puntos;
-}
-
+// Almacenamiento temporal para no volver a descargar datos ya consultados
+var cacheDatosCSV = {};
 var miChart;
+
 function inicializarChartVacio() {
   var ctx = document.getElementById('chartJsCanvas').getContext('2d');
   miChart = new Chart(ctx, {
     type: 'line',
-    data: { labels: [], datasets: [{ label: 'Serie Temporal WSEL', data: [], borderColor: '#2563eb', borderWidth: 2, fill: true, backgroundColor: 'rgba(219, 234, 254, 0.4)', pointRadius: 0 }] },
+    data: { labels: [], datasets: [{ label: 'Valores de Profundidad', data: [], borderColor: '#2563eb', borderWidth: 2, fill: true, backgroundColor: 'rgba(219, 234, 254, 0.4)', pointRadius: 0 }] },
     options: { responsive: true, maintainAspectRatio: false, scales: { x: { display: false }, y: { grid: { color: '#f1f5f9' } } } }
   });
 }
@@ -138,7 +134,7 @@ function validarIngresoWSEL() {
   var wselVal = document.getElementById('wselInput').value.trim();
   var selectorPlanes = document.getElementById('planSelect');
   if (wselVal !== "" && !isNaN(parseFloat(wselVal))) {
-    selectorPlanes.disabled = false; selectorPlanes.options[0].text = "-- Seleccione el Plan --";
+    selectorPlanes.disabled = false; selectorPlanes.options[0].text = "-- Seleccione el Escenario/TR --";
   } else {
     selectorPlanes.disabled = true; selectorPlanes.value = ""; selectorPlanes.options[0].text = "-- Ingrese WSEL primero --";
     if(capaPrevisualizacionTemporal) { map.removeLayer(capaPrevisualizacionTemporal); capaPrevisualizacionTemporal = null; }
@@ -146,9 +142,64 @@ function validarIngresoWSEL() {
   }
 }
 
-function procesarConsultaAutomatica() {
+// =========================================================================
+// LECTOR ASÍNCRONO AUTOMÁTICO DE ARCHIVOS CSV DE GITHUB
+// =========================================================================
+async function descargarYProcesarCSV(planSeleccionado) {
+  if (cacheDatosCSV[planSeleccionado]) {
+    return cacheDatosCSV[planSeleccionado];
+  }
+
+  var urlCompleta = urlBaseGitHub + dbExcelPlanes[planSeleccionado].archivo;
+
+  try {
+    var respuesta = await fetch(urlCompleta);
+    if (!respuesta.ok) throw new Error("Error en conexión de red");
+    
+    var textoPlano = await respuesta.text();
+    var lineas = textoPlano.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+    
+    // Detectamos encabezados
+    var encabezados = lineas[0].split(",");
+    let idxStep = encabezados.findIndex(h => h.toLowerCase().includes('step') || h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('_0'));
+    let idxDate = encabezados.findIndex(h => h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
+    let idxWsel = encabezados.findIndex(h => h.toLowerCase().includes('wsel') || h.toLowerCase().includes('depth') || h.toLowerCase().includes('valor'));
+
+    // Si no encuentra los indices por nombre, asignamos por posición por defecto (0, 1, 2)
+    if (idxStep === -1) idxStep = 0;
+    if (idxDate === -1) idxDate = 1;
+    if (idxWsel === -1) idxWsel = 2;
+
+    var arregloObjetos = [];
+    for (var i = 1; i < lineas.length; i++) {
+      var columnas = lineas[i].split(",");
+      if (columnas.length >= 3) {
+        arregloObjetos.push({
+          step: parseInt(columnas[idxStep]) || i,
+          date: columnas[idxDate] ? columnas[idxDate].replace(/"/g, '') : "22-Feb 00:00",
+          wsel: parseFloat(columnas[idxWsel]) || 0
+        });
+      }
+    }
+
+    cacheDatosCSV[planSeleccionado] = arregloObjetos;
+    return arregloObjetos;
+
+  } catch (error) {
+    console.error("Fallo al conectar con los servidores de datos en GitHub:", error);
+    alert(`No se pudo descargar el archivo de datos: ${dbExcelPlanes[planSeleccionado].archivo}`);
+    return null;
+  }
+}
+
+// =========================================================================
+// PROCESAMIENTO PRINCIPAL MODIFICADO (AHORA ASÍNCRONO REAL)
+// =========================================================================
+async function procesarConsultaAutomatica() {
   var wselValor = parseFloat(document.getElementById('wselInput').value);
   var planSeleccionado = document.getElementById('planSelect').value;
+  if (!planSeleccionado || isNaN(wselValor)) return;
+
   var meta = dbExcelPlanes[planSeleccionado];
 
   if (wselValor < meta.min || wselValor > meta.max) {
@@ -156,13 +207,27 @@ function procesarConsultaAutomatica() {
     document.getElementById('planSelect').value = ""; return;
   }
 
-  document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
+  document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-amber-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
+  document.getElementById('badgeEstado').innerText = "Descargando...";
+
+  // Llamado real al CSV de GitHub de este TR específico
+  var datosPlanActual = await descargarYProcesarCSV(planSeleccionado);
+  
+  if (!datosPlanActual || datosPlanActual.length === 0) {
+    document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-red-500 text-white px-2 py-1 rounded uppercase tracking-wider";
+    document.getElementById('badgeEstado').innerText = "Error Datos";
+    return;
+  }
+
+  document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider";
   document.getElementById('badgeEstado').innerText = "Procesado";
 
-  var datosPlanActual = generarCurvaExcel(planSeleccionado);
+  // Buscar el paso más cercano al valor digitado
   var puntoMasCercano = datosPlanActual.reduce((prev, curr) => Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev);
 
   document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
+  
+  // Graficar la serie temporal completa obtenida del CSV genuino
   miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
   miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
   miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
@@ -193,20 +258,44 @@ function procesarConsultaAutomatica() {
   };
   
   document.getElementById('btnGuardarConsulta').disabled = false;
+  document.getElementById('btnDescargarCSV').disabled = false; // ¡AÑADE ESTA LÍNEA AQUÍ PARA ENCENDER TU BOTÓN!
   actualizarLeyendaDinamica();
+}
+
+// =========================================================================
+// FUNCIÓN PARA DESCARGAR LOS DATOS ACTIVOS DIRECTAMENTE AL PC
+// =========================================================================
+// Agrega un botón en tu HTML que llame a esta función: onclick="descargarDatosCSVActual()"
+function descargarDatosCSVActual() {
+  var planSeleccionado = document.getElementById('planSelect').value;
+  if (!planSeleccionado || !cacheDatosCSV[planSeleccionado]) {
+    alert("No hay datos cargados para descargar. Digite un valor y seleccione un TR.");
+    return;
+  }
+
+  var datos = cacheDatosCSV[planSeleccionado];
+  var contenidoCSV = "Step,Date/Time,WSEL\n";
+  
+  datos.forEach(f => {
+    contenidoCSV += `${f.step},"${f.date}",${f.wsel}\n`;
+  });
+
+  var blob = new Blob([contenidoCSV], { type: 'text/csv;charset=utf-8;' });
+  var link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute("download", `Datos_Inundacion_${planSeleccionado.toUpperCase()}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function guardarConsultaEnHistorial() {
   if (!consultaActualTemporal) return;
-  
   consultaActualTemporal.fechaDetectada = document.getElementById('fechaDetectadaInput').value || consultaActualTemporal.fechaDetectada;
-  
   historialConsultas.push(consultaActualTemporal);
-  
   capaPrevisualizacionTemporal = null;
   consultaActualTemporal = null;
   document.getElementById('btnGuardarConsulta').disabled = true;
-  
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
@@ -241,9 +330,7 @@ function actualizarRenderTablaHistorial() {
 
 function removerConsultaHistorial(index) {
   var item = historialConsultas[index];
-  if(item) {
-    map.removeLayer(item.instanciaCapa);
-  }
+  if(item) { map.removeLayer(item.instanciaCapa); }
   historialConsultas.splice(index, 1);
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
@@ -262,61 +349,69 @@ function actualizarLeyendaDinamica() {
     `;
   }
 
-  contenedorLeyenda.innerHTML = "";
-  geeOverlayContainer.innerHTML = "";
+  if (contenedorLeyenda) contenedorLeyenda.innerHTML = "";
+  if (geeOverlayContainer) geeOverlayContainer.innerHTML = "";
   
   if (historialConsultas.length === 0 && !consultaActualTemporal) {
-    contenedorLeyenda.innerHTML = `<span class="text-slate-400 italic">Ninguna capa cargada</span>`;
-    geeOverlayContainer.innerHTML = `<span class="text-slate-400 italic text-[11px]">No hay capas en el historial.</span>`;
+    if (contenedorLeyenda) contenedorLeyenda.innerHTML = `<span class="text-slate-400 italic">Ninguna capa cargada</span>`;
+    if (geeOverlayContainer) geeOverlayContainer.innerHTML = `<span class="text-slate-400 italic text-[11px]">No hay capas en el historial.</span>`;
     return;
   }
   
   if(consultaActualTemporal) {
-    contenedorLeyenda.innerHTML += `
-      <div class="flex items-center gap-2 mb-1">
-        <span class="w-3 h-3 rounded bg-amber-500 shrink-0 animate-pulse"></span>
-        <span class="text-[11px] font-medium text-amber-700">[Previsualizando] ${consultaActualTemporal.plan}</span>
-      </div>
-    `;
-    
-    geeOverlayContainer.innerHTML += `
-      <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs animate-pulse">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-          <span class="font-bold text-amber-800">${consultaActualTemporal.plan} (${consultaActualTemporal.wsel}m)</span>
+    if (contenedorLeyenda) {
+      contenedorLeyenda.innerHTML += `
+        <div class="flex items-center gap-2 mb-1">
+          <span class="w-3 h-3 rounded bg-amber-500 shrink-0 animate-pulse"></span>
+          <span class="text-[11px] font-medium text-amber-700">[Previsualizando] ${consultaActualTemporal.plan}</span>
         </div>
-        <span class="text-[9px] uppercase font-black text-amber-600 tracking-wider">Previa</span>
-      </div>
-    `;
+      `;
+    }
+    
+    if (geeOverlayContainer) {
+      geeOverlayContainer.innerHTML += `
+        <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs animate-pulse">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+            <span class="font-bold text-amber-800">${consultaActualTemporal.plan} (${consultaActualTemporal.wsel}m)</span>
+          </div>
+          <span class="text-[9px] uppercase font-black text-amber-600 tracking-wider">Previa</span>
+        </div>
+      `;
+    }
   }
   
   historialConsultas.forEach((item, index) => {
     var estaActivaEnMapa = map.hasLayer(item.instanciaCapa);
     
-    contenedorLeyenda.innerHTML += `
-      <div class="flex items-center gap-2 opacity-${estaActivaEnMapa ? '100' : '40'} transition-opacity">
-        <span class="w-3 h-3 rounded bg-blue-600 shrink-0"></span>
-        <span>${item.plan} (${item.wsel} m)</span>
-      </div>
-    `;
-    
-    var itemCapaGEE = document.createElement('div');
-    itemCapaGEE.className = "bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-between shadow-sm hover:border-slate-300 transition-all";
-    itemCapaGEE.innerHTML = `
-      <div class="flex items-center gap-2.5 flex-1 min-w-0">
-        <input type="checkbox" id="chk-gee-${index}" ${estaActivaEnMapa ? 'checked' : ''} 
-               onchange="alternarVisibilidadCapaHistorial(${index})" 
-               class="w-4 h-4 text-blue-600 bg-gray-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
-        <div class="flex flex-col min-w-0">
-          <span class="font-bold text-slate-800 text-xs truncate">${item.plan} - WSEL ${item.wsel}m</span>
-          <span class="text-[9px] font-mono text-slate-400 truncate">${item.servicio.split(':')[1]}</span>
+    if (contenedorLeyenda) {
+      contenedorLeyenda.innerHTML += `
+        <div class="flex items-center gap-2 opacity-${estaActivaEnMapa ? '100' : '40'} transition-opacity">
+          <span class="w-3 h-3 rounded bg-blue-600 shrink-0"></span>
+          <span>${item.plan} (${item.wsel} m)</span>
         </div>
-      </div>
-      <button onclick="removerConsultaHistorial(${index})" class="text-slate-400 hover:text-red-500 p-1 transition-colors ml-1" title="Eliminar de la sesión">
-        <i class="fa-solid fa-trash-can text-[11px]"></i>
-      </button>
-    `;
-    geeOverlayContainer.appendChild(itemCapaGEE);
+      `;
+    }
+    
+    if (geeOverlayContainer) {
+      var itemCapaGEE = document.createElement('div');
+      itemCapaGEE.className = "bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-between shadow-sm hover:border-slate-300 transition-all";
+      itemCapaGEE.innerHTML = `
+        <div class="flex items-center gap-2.5 flex-1 min-w-0">
+          <input type="checkbox" id="chk-gee-${index}" ${estaActivaEnMapa ? 'checked' : ''} 
+                 onchange="alternarVisibilidadCapaHistorial(${index})" 
+                 class="w-4 h-4 text-blue-600 bg-gray-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
+          <div class="flex flex-col min-w-0">
+            <span class="font-bold text-slate-800 text-xs truncate">${item.plan} - WSEL ${item.wsel}m</span>
+            <span class="text-[9px] font-mono text-slate-400 truncate">${item.servicio.split(':')[1]}</span>
+          </div>
+        </div>
+        <button onclick="removerConsultaHistorial(${index})" class="text-slate-400 hover:text-red-500 p-1 transition-colors ml-1" title="Eliminar de la sesión">
+          <i class="fa-solid fa-trash-can text-[11px]"></i>
+        </button>
+      `;
+      geeOverlayContainer.appendChild(itemCapaGEE);
+    }
   });
 }
 
@@ -353,7 +448,8 @@ function activarHerramientaDibujo(tipo) {
   if (herramientaActiva === tipo) { desactivarModosMapa(); return; }
   desactivarModosMapa();
   herramientaActiva = tipo;
-  document.getElementById(`btn-draw-${tipo}`).classList.add('arcgis-btn-active');
+  var btnEl = document.getElementById(`btn-draw-${tipo}`);
+  if(btnEl) btnEl.classList.add('arcgis-btn-active');
   document.getElementById('statusDibujo').innerText = `Modo: ${tipo.toUpperCase()} activo`;
 
   if (tipo === 'point') {
@@ -431,7 +527,39 @@ async function ejecutarBusquedaDirecta() {
   } catch (e) { console.error(e); }
 }
 function toggleLeyenda() { document.getElementById('panelLeyenda').classList.toggle('hidden'); }
-function volverAlHome() { map.setView([-11.018, -68.752], 13); }
 
-// Inicialización del panel de capas al arranque
-actualizarLeyendaDinamica();
+// =========================================================================
+// FUNCIÓN PARA DESCARGAR EL ARCHIVO CSV COMPLETO DEL TR SELECCIONADO AL PC
+// =========================================================================
+function descargarDatosCSVActual() {
+  var planSeleccionado = document.getElementById('planSelect').value;
+  
+  // Verificamos que existan datos cargados en caché para este escenario
+  if (!planSeleccionado || !cacheDatosCSV[planSeleccionado]) {
+    alert("No hay datos disponibles en memoria para descargar en este momento.");
+    return;
+  }
+
+  var datosOriginales = cacheDatosCSV[planSeleccionado];
+  
+  // Construimos la cabecera estándar de tus archivos
+  var contenidoCSV = "Step,Date/Time,WSEL\n";
+  
+  // Reconstruimos fila por fila en formato de texto CSV
+  datosOriginales.forEach(function(fila) {
+    contenidoCSV += `${fila.step},"${fila.date}",${fila.wsel}\n`;
+  });
+
+  // Generamos el objeto binario de tipo texto/csv
+  var blob = new Blob([contenidoCSV], { type: 'text/csv;charset=utf-8;' });
+  var linkDescarga = document.createElement("a");
+  
+  // Generamos una URL temporal para forzar la descarga en el navegador con un nombre limpio
+  linkDescarga.href = URL.createObjectURL(blob);
+  linkDescarga.setAttribute("download", `Datos_Originales_${planSeleccionado.toUpperCase()}.csv`);
+  
+  // Inyectamos el nodo de forma invisible, hacemos clic y lo eliminamos
+  document.body.appendChild(linkDescarga);
+  linkDescarga.click();
+  document.body.removeChild(linkDescarga);
+}
