@@ -38,13 +38,23 @@ var esriLabelsLayer = L.tileLayer(mapaBaseDefiniciones["Satélite Híbrido"].url
 var capaBaseInstanciada = L.layerGroup([esriHibridoLayer, esriLabelsLayer]).addTo(map);
 var mapaBaseActualNombre = "Satélite Híbrido";
 
-var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/wms";
-var espacioTrabajoReal = "coast_wind_data";
-var estiloAsignado = "estilo_manchas_inundacion";
+var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
+var espacioTrabajoReal = "rio_acre_manchas";
+var estiloAsignado = "";
 
 var capaPrevisualizacionTemporal = null; 
 var consultaActualTemporal = null;       
 var historialConsultas = [];  
+
+const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
+
+var dbExcelPlanes = {
+  tr2:    { min: 0.0000, max: 12.2199, archivo: "depth_TR2.csv", capa: "rio_acre_manchas:depth_tr2" },
+  tr10:   { min: 0.0000, max: 14.5453, archivo: "depth_TR10.csv", capa: "rio_acre_manchas:depth_tr10" },
+  tr50:   { min: 0.0000, max: 16.1415, archivo: "depth_TR50.csv", capa: "rio_acre_manchas:depth_tr50" },
+  tr100:  { min: 0.0000, max: 16.7478, archivo: "depth_TR100.csv", capa: "rio_acre_manchas:depth_tr100" },
+  tr2023: { min: 0.0000, max: 12.3294, archivo: "depth_TR2023.csv", capa: "rio_acre_manchas:depth_tr2023" }
+};
 
 var capasDibujo = L.featureGroup().addTo(map);
 var herramientaActiva = null;
@@ -102,19 +112,6 @@ function toggleWidget(idPanel) {
   paneles.forEach(p => { if(p !== idPanel) document.getElementById(p).classList.add('hidden'); });
   document.getElementById(idPanel).classList.toggle('hidden');
 }
-
-// =========================================================================
-// URL BASE CORREGIDA Y DICCIONARIO DE DATOS CSV REALES DESDE GITHUB
-// =========================================================================
-const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
-
-var dbExcelPlanes = {
-  tr2:    { min: 0.0000, max: 12.2199, archivo: "depth_TR2.csv", capa: "rio_acre_manchas:depth_tr2" },
-  tr10:   { min: 0.0000, max: 14.5453, archivo: "depth_TR10.csv", capa: "rio_acre_manchas:depth_tr10" },
-  tr50:   { min: 0.0000, max: 16.1415, archivo: "depth_TR50.csv", capa: "rio_acre_manchas:depth_tr50" },
-  tr100:  { min: 0.0000, max: 16.7478, archivo: "depth_TR100.csv", capa: "rio_acre_manchas:depth_tr100" },
-  tr2023: { min: 0.0000, max: 12.3294, archivo: "depth_TR2023.csv", capa: "rio_acre_manchas:depth_tr2023" }
-};
 
 // Almacenamiento temporal para no volver a descargar datos ya consultados
 var cacheDatosCSV = {};
@@ -232,22 +229,44 @@ async function procesarConsultaAutomatica() {
   miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
   miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
   miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
+
   miChart.update();
 
+  document.getElementById('btnDescargarCSV').disabled = false;
+
+  // CONSTRUCCIÓN FORMAL DEL STRING DE CAPA REAL: Depth_XX_DDMMMYYYY_HH_MM_SS_TRXX
   var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
-  var partesFecha = puntoMasCercano.date.split(" "); 
-  var cadenaFechaFinal = `${partesFecha[0]}2026_${partesFecha[1].replace(/:/g, "_")}`;
-  var nombreCapaGeoTIFF = `WSE_${numeroPasoFormateado}_${cadenaFechaFinal}_${planSeleccionado}`;
+  
+  var partesFecha = puntoMasCercano.date.split(" "); // ["19-Apr", "00:00"]
+  var componentesDiaMes = partesFecha[0].split("-"); // ["19", "Apr"]
+  
+  var dia = componentesDiaMes[0].padStart(2, '0');
+  var mes = componentesDiaMes[1].toUpperCase(); // Asegura que quede "APR", "MAR", "FEB", etc.
+  var horaMinuto = partesFecha[1].split(":"); // ["00", "00"]
+  
+  var hora = horaMinuto[0].padStart(2, '0');
+  var minuto = horaMinuto[1].padStart(2, '0');
+  
+  // Ensamblamos la cadena de tiempo idéntica al almacén de GeoServer
+  var cadenaFechaFinal = `${dia}${mes}2026_${hora}_${minuto}_00`;
+  var sufijoTR = dbExcelPlanes[planSeleccionado].capaSuffix; // Obtiene TR02, TR10, etc.
+  
+  var nombreCapaGeoTIFF = `Depth_${numeroPasoFormateado}_${cadenaFechaFinal}_${sufijoTR}`;
 
   if (capaPrevisualizacionTemporal) { map.removeLayer(capaPrevisualizacionTemporal); }
 
+  // INYECCIÓN CON VERSIONAMIENTO CORRECTO AL GEOSERVER DE PRODUCCIÓN
   capaPrevisualizacionTemporal = L.tileLayer.wms(urlServidorWms, {
     layers: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
-    format: 'image/png', transparent: true, version: '1.1.1', styles: `${espacioTrabajoReal}:${estiloAsignado}`
+    format: 'image/png', 
+    transparent: true, 
+    version: '1.1.0', // Ajustado a la versión nativa de tu enlace de prueba
+    styles: estiloAsignado
   }).addTo(map);
 
-  document.getElementById('logConsole').innerHTML = `<span class="text-green-400">> Previsualizando:</span> <span class="text-white">${nombreCapaGeoTIFF}</span>`;
+  document.getElementById('logConsole').innerHTML = `<span class="text-green-400">> Previsualizando:</span> <span class="text-white">${espacioTrabajoReal}:${nombreCapaGeoTIFF}</span>`;
 
+  // Guardamos en el objeto temporal usando el nuevo nombre estándar
   consultaActualTemporal = {
     plan: planSeleccionado.toUpperCase(),
     wsel: wselValor.toFixed(2),
@@ -258,9 +277,9 @@ async function procesarConsultaAutomatica() {
   };
   
   document.getElementById('btnGuardarConsulta').disabled = false;
-  document.getElementById('btnDescargarCSV').disabled = false; // ¡AÑADE ESTA LÍNEA AQUÍ PARA ENCENDER TU BOTÓN!
   actualizarLeyendaDinamica();
 }
+
 
 // =========================================================================
 // FUNCIÓN PARA DESCARGAR LOS DATOS ACTIVOS DIRECTAMENTE AL PC
