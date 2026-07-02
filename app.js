@@ -1,3 +1,41 @@
+// Rampa de colores idéntica al ColorMap del estilo SLD "estilo_inundacion" en GeoServer
+var rampaColoresInundacion = [
+  { limite: 0,  color: "#ffffff", etiqueta: "Seco" },
+  { limite: 2,  color: "#a6bddb", etiqueta: "Inundación Baja" },
+  { limite: 6,  color: "#3690c0", etiqueta: "Inundación Moderada" },
+  { limite: 12, color: "#023858", etiqueta: "Inundación Alta" },
+  { limite: 17, color: "#4a1486", etiqueta: "Inundación Extrema" }
+];
+
+// Devuelve el color de la rampa correspondiente a una profundidad (depth) dada
+function obtenerColorPorProfundidad(valorDepth) {
+  var valor = parseFloat(valorDepth);
+  if (isNaN(valor)) return rampaColoresInundacion[0].color;
+
+  var colorSeleccionado = rampaColoresInundacion[0].color;
+  for (var i = 0; i < rampaColoresInundacion.length; i++) {
+    if (valor >= rampaColoresInundacion[i].limite) {
+      colorSeleccionado = rampaColoresInundacion[i].color;
+    }
+  }
+  return colorSeleccionado;
+}
+
+// Pinta el bloque fijo de la rampa de colores (Seco -> Extrema) dentro del panel de leyenda
+function renderizarRampaLeyenda() {
+  var contenedorRampa = document.getElementById('leyendaRampaContenedor');
+  if (!contenedorRampa) return;
+
+  contenedorRampa.innerHTML = rampaColoresInundacion.map(function(tramo) {
+    return `
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded shrink-0 border border-slate-200" style="background-color: ${tramo.color};"></span>
+        <span>${tramo.etiqueta} (≥ ${tramo.limite} m)</span>
+      </div>
+    `;
+  }).join('');
+}
+
 var mapaBaseDefiniciones = {
   "Satélite Híbrido": {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -40,7 +78,7 @@ var mapaBaseActualNombre = "Satélite Híbrido";
 
 var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
 var espacioTrabajoReal = "rio_acre_manchas";
-var estiloAsignado = "";
+var estiloAsignado = "estilo_inundacion";
 
 var capaPrevisualizacionTemporal = null; 
 var consultaActualTemporal = null;       
@@ -127,13 +165,13 @@ function inicializarChartVacio() {
 }
 inicializarChartVacio();
 
-function validarIngresoWSEL() {
-  var wselVal = document.getElementById('wselInput').value.trim();
+function validarIngresoDepth() {
+  var depthVal = document.getElementById('depthInput').value.trim();
   var selectorPlanes = document.getElementById('planSelect');
-  if (wselVal !== "" && !isNaN(parseFloat(wselVal))) {
+  if (depthVal !== "" && !isNaN(parseFloat(depthVal))) {
     selectorPlanes.disabled = false; selectorPlanes.options[0].text = "-- Seleccione el Escenario/TR --";
   } else {
-    selectorPlanes.disabled = true; selectorPlanes.value = ""; selectorPlanes.options[0].text = "-- Ingrese WSEL primero --";
+    selectorPlanes.disabled = true; selectorPlanes.value = ""; selectorPlanes.options[0].text = "-- Ingrese Depth primero --";
     if(capaPrevisualizacionTemporal) { map.removeLayer(capaPrevisualizacionTemporal); capaPrevisualizacionTemporal = null; }
     document.getElementById('btnGuardarConsulta').disabled = true;
   }
@@ -160,12 +198,12 @@ async function descargarYProcesarCSV(planSeleccionado) {
     var encabezados = lineas[0].split(",");
     let idxStep = encabezados.findIndex(h => h.toLowerCase().includes('step') || h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('_0'));
     let idxDate = encabezados.findIndex(h => h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
-    let idxWsel = encabezados.findIndex(h => h.toLowerCase().includes('wsel') || h.toLowerCase().includes('depth') || h.toLowerCase().includes('valor'));
+    let idxDepth = encabezados.findIndex(h => h.toLowerCase().includes('wsel') || h.toLowerCase().includes('depth') || h.toLowerCase().includes('valor'));
 
     // Si no encuentra los indices por nombre, asignamos por posición por defecto (0, 1, 2)
     if (idxStep === -1) idxStep = 0;
     if (idxDate === -1) idxDate = 1;
-    if (idxWsel === -1) idxWsel = 2;
+    if (idxDepth === -1) idxDepth = 2;
 
     var arregloObjetos = [];
     for (var i = 1; i < lineas.length; i++) {
@@ -174,7 +212,7 @@ async function descargarYProcesarCSV(planSeleccionado) {
         arregloObjetos.push({
           step: parseInt(columnas[idxStep]) || i,
           date: columnas[idxDate] ? columnas[idxDate].replace(/"/g, '') : "01FEB2026 00:00:00",
-          wsel: parseFloat(columnas[idxWsel]) || 0
+          depth: parseFloat(columnas[idxDepth]) || 0
         });
       }
     }
@@ -193,14 +231,14 @@ async function descargarYProcesarCSV(planSeleccionado) {
 // PROCESAMIENTO PRINCIPAL MODIFICADO (AHORA ASÍNCRONO REAL)
 // =========================================================================
 async function procesarConsultaAutomatica() {
-  var wselValor = parseFloat(document.getElementById('wselInput').value);
+  var depthValor = parseFloat(document.getElementById('depthInput').value);
   var planSeleccionado = document.getElementById('planSelect').value;
-  if (!planSeleccionado || isNaN(wselValor)) return;
+  if (!planSeleccionado || isNaN(depthValor)) return;
 
   var meta = dbExcelPlanes[planSeleccionado];
 
-  if (wselValor < meta.min || wselValor > meta.max) {
-    alert(`Limites Excedidos: ${wselValor}m fuera de [${meta.min.toFixed(2)}m - ${meta.max.toFixed(2)}m].`);
+  if (depthValor < meta.min || depthValor > meta.max) {
+    alert(`Limites Excedidos: ${depthValor}m fuera de [${meta.min.toFixed(2)}m - ${meta.max.toFixed(2)}m].`);
     document.getElementById('planSelect').value = ""; return;
   }
 
@@ -220,13 +258,13 @@ async function procesarConsultaAutomatica() {
   document.getElementById('badgeEstado').innerText = "Procesado";
 
   // Buscar el paso más cercano al valor digitado
-  var puntoMasCercano = datosPlanActual.reduce((prev, curr) => Math.abs(curr.wsel - wselValor) < Math.abs(prev.wsel - wselValor) ? curr : prev);
+  var puntoMasCercano = datosPlanActual.reduce((prev, curr) => Math.abs(curr.depth - depthValor) < Math.abs(prev.depth - depthValor) ? curr : prev);
 
   document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
   
   // Graficar la serie temporal completa obtenida del CSV genuino
   miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
-  miChart.data.datasets[0].data = datosPlanActual.map(p => p.wsel);
+  miChart.data.datasets[0].data = datosPlanActual.map(p => p.depth);
   miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
   miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
 
@@ -273,8 +311,8 @@ async function procesarConsultaAutomatica() {
   // Guardamos en el objeto temporal usando el nuevo nombre estándar
   consultaActualTemporal = {
     plan: planSeleccionado.toUpperCase(),
-    wsel: wselValor.toFixed(2),
-    labelCapa: `${planSeleccionado.toUpperCase()} (WSEL: ${wselValor.toFixed(4)}m)`,
+    depth: depthValor.toFixed(2),
+    labelCapa: `${planSeleccionado.toUpperCase()} (Depth: ${depthValor.toFixed(4)}m)`,
     servicio: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
     instanciaCapa: capaPrevisualizacionTemporal,
     fechaDetectada: puntoMasCercano.date
@@ -297,10 +335,10 @@ function descargarDatosCSVActual() {
   }
 
   var datos = cacheDatosCSV[planSeleccionado];
-  var contenidoCSV = "Step,Date/Time,WSEL\n";
+  var contenidoCSV = "Step,Date/Time,Depth\n";
   
   datos.forEach(f => {
-    contenidoCSV += `${f.step},"${f.date}",${f.wsel}\n`;
+    contenidoCSV += `${f.step},"${f.date}",${f.depth}\n`;
   });
 
   var blob = new Blob([contenidoCSV], { type: 'text/csv;charset=utf-8;' });
@@ -338,7 +376,7 @@ function actualizarRenderTablaHistorial() {
     fila.innerHTML = `
       <td class="p-2 text-center font-bold text-slate-400">${index + 1}</td>
       <td class="p-2 font-bold text-slate-800">${item.plan}</td>
-      <td class="p-2 font-mono text-blue-600 font-semibold">${item.wsel} m</td>
+      <td class="p-2 font-mono text-blue-600 font-semibold">${item.depth} m</td>
       <td class="p-2 text-slate-600 text-[11px] font-sans">${item.fechaDetectada.replace('T', ' ')}</td>
       <td class="p-2 text-yellow-600 font-mono text-[10px] truncate max-w-[180px]" title="${item.servicio}">${item.servicio}</td>
       <td class="p-2 text-center">
@@ -360,6 +398,7 @@ function removerConsultaHistorial(index) {
 }
 
 function actualizarLeyendaDinamica() {
+  renderizarRampaLeyenda();
   var contenedorLeyenda = document.getElementById('leyendaContenedorDinamico');
   var geeBaseContainer = document.getElementById('geeBaseLayerContainer');
   var geeOverlayContainer = document.getElementById('geeOverlayLayersContainer');
@@ -396,7 +435,7 @@ function actualizarLeyendaDinamica() {
         <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs animate-pulse">
           <div class="flex items-center gap-2">
             <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-            <span class="font-bold text-amber-800">${consultaActualTemporal.plan} (${consultaActualTemporal.wsel}m)</span>
+            <span class="font-bold text-amber-800">${consultaActualTemporal.plan} (${consultaActualTemporal.depth}m)</span>
           </div>
           <span class="text-[9px] uppercase font-black text-amber-600 tracking-wider">Previa</span>
         </div>
@@ -410,8 +449,8 @@ function actualizarLeyendaDinamica() {
     if (contenedorLeyenda) {
       contenedorLeyenda.innerHTML += `
         <div class="flex items-center gap-2 opacity-${estaActivaEnMapa ? '100' : '40'} transition-opacity">
-          <span class="w-3 h-3 rounded bg-blue-600 shrink-0"></span>
-          <span>${item.plan} (${item.wsel} m)</span>
+          <span class="w-3 h-3 rounded shrink-0 border border-slate-200" style="background-color: ${obtenerColorPorProfundidad(item.depth)};"></span>
+          <span>${item.plan} (${item.depth} m)</span>
         </div>
       `;
     }
@@ -425,7 +464,7 @@ function actualizarLeyendaDinamica() {
                  onchange="alternarVisibilidadCapaHistorial(${index})" 
                  class="w-4 h-4 text-blue-600 bg-gray-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
           <div class="flex flex-col min-w-0">
-            <span class="font-bold text-slate-800 text-xs truncate">${item.plan} - WSEL ${item.wsel}m</span>
+            <span class="font-bold text-slate-800 text-xs truncate">${item.plan} - Depth ${item.depth}m</span>
             <span class="text-[9px] font-mono text-slate-400 truncate">${item.servicio.split(':')[1]}</span>
           </div>
         </div>
@@ -551,6 +590,13 @@ async function ejecutarBusquedaDirecta() {
 }
 function toggleLeyenda() { document.getElementById('panelLeyenda').classList.toggle('hidden'); }
 
+function volverAlHome() { map.setView([-11.018, -68.752], 13); }
+
+function obtenerUbicacionActual() {
+  map.locate({setView: true, maxZoom: 15});
+}
+
+
 // =========================================================================
 // FUNCIÓN PARA DESCARGAR EL ARCHIVO CSV COMPLETO DEL TR SELECCIONADO AL PC
 // =========================================================================
@@ -566,11 +612,11 @@ function descargarDatosCSVActual() {
   var datosOriginales = cacheDatosCSV[planSeleccionado];
   
   // Construimos la cabecera estándar de tus archivos
-  var contenidoCSV = "Step,Date/Time,WSEL\n";
+  var contenidoCSV = "Step,Date/Time,Depth\n";
   
   // Reconstruimos fila por fila en formato de texto CSV
   datosOriginales.forEach(function(fila) {
-    contenidoCSV += `${fila.step},"${fila.date}",${fila.wsel}\n`;
+    contenidoCSV += `${fila.step},"${fila.date}",${fila.depth}\n`;
   });
 
   // Generamos el objeto binario de tipo texto/csv

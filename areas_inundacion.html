@@ -81,6 +81,7 @@
       <div class="absolute bottom-4 left-4 z-[1000] flex flex-col gap-2 items-start">
         <div class="flex flex-col gap-1 shadow-md rounded-lg overflow-hidden border border-slate-200 bg-white">
           <button onclick="volverAlHome()" title="Vista predeterminada" class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-house text-xs"></i></button>
+          <button onclick="obtenerUbicacionActual()" title="Mi ubicación" class="w-8 h-8 flex items-center justify-center border-t border-slate-100 hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-crosshairs text-xs"></i></button>
         </div>
         
         <div class="flex gap-2">
@@ -111,6 +112,13 @@
 
         <div id="panelLeyenda" class="hidden bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-lg shadow-xl w-56 text-slate-700">
           <div class="text-[11px] font-bold text-slate-900 tracking-wider border-b pb-1 mb-2">Leyenda y simbología</div>
+
+          <div class="mb-2 pb-2 border-b border-slate-100">
+            <div class="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Rampa de Profundidad (m)</div>
+            <div id="leyendaRampaContenedor" class="flex flex-col gap-1 text-[11px]"></div>
+          </div>
+
+          <div class="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Capas Activas</div>
           <div id="leyendaContenedorDinamico" class="flex flex-col gap-1.5 text-xs">
             <span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>
           </div>
@@ -130,9 +138,9 @@
             <div class="relative">
               <input 
                 type="number" 
-                id="wselInput" 
+                id="depthInput" 
                 step="0.01" 
-                oninput="validarIngresoWSEL()" 
+                oninput="validarIngresoDepth()" 
                 class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-mono font-bold text-[12px] text-blue-600 text-center outline-none focus:ring-2 focus:ring-blue-500 transition-all"  
                 placeholder="Ej: 5.40">
             </div>
