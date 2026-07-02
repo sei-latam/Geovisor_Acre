@@ -173,7 +173,7 @@ async function descargarYProcesarCSV(planSeleccionado) {
       if (columnas.length >= 3) {
         arregloObjetos.push({
           step: parseInt(columnas[idxStep]) || i,
-          date: columnas[idxDate] ? columnas[idxDate].replace(/"/g, '') : "22-Feb 00:00",
+          date: columnas[idxDate] ? columnas[idxDate].replace(/"/g, '') : "01FEB2026 00:00:00",
           wsel: parseFloat(columnas[idxWsel]) || 0
         });
       }
@@ -237,18 +237,22 @@ async function procesarConsultaAutomatica() {
   // CONSTRUCCIÓN FORMAL DEL STRING DE CAPA REAL: Depth_XX_DDMMMYYYY_HH_MM_SS_TRXX
   var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
   
-  var partesFecha = puntoMasCercano.date.split(" "); // ["19-Apr", "00:00"]
-  var componentesDiaMes = partesFecha[0].split("-"); // ["19", "Apr"]
-  
-  var dia = componentesDiaMes[0].padStart(2, '0');
-  var mes = componentesDiaMes[1].toUpperCase(); // Asegura que quede "APR", "MAR", "FEB", etc.
-  var horaMinuto = partesFecha[1].split(":"); // ["00", "00"]
-  
-  var hora = horaMinuto[0].padStart(2, '0');
-  var minuto = horaMinuto[1].padStart(2, '0');
-  
+  // Formato real que entrega el CSV: "19APR2026 13:30:00" (DDMMMAAAA HH:MM:SS, sin guiones)
+  var partesFecha = puntoMasCercano.date.trim().split(" "); // ["19APR2026", "13:30:00"]
+  var fechaBruta = partesFecha[0] || "";                    // "19APR2026"
+  var horaBruta = partesFecha[1] || "00:00:00";              // "13:30:00"
+
+  var dia = fechaBruta.substring(0, 2).padStart(2, '0');     // "19"
+  var mes = fechaBruta.substring(2, 5).toUpperCase();        // "APR"
+  var anio = fechaBruta.substring(5, 9) || "2026";           // "2026"
+
+  var horaMinutoSegundo = horaBruta.split(":");              // ["13", "30", "00"]
+  var hora = (horaMinutoSegundo[0] || "00").padStart(2, '0');
+  var minuto = (horaMinutoSegundo[1] || "00").padStart(2, '0');
+  var segundo = (horaMinutoSegundo[2] || "00").padStart(2, '0');
+
   // Ensamblamos la cadena de tiempo idéntica al almacén de GeoServer
-  var cadenaFechaFinal = `${dia}${mes}2026_${hora}_${minuto}_00`;
+  var cadenaFechaFinal = `${dia}${mes}${anio}_${hora}_${minuto}_${segundo}`;
   var sufijoTR = dbExcelPlanes[planSeleccionado].capaSuffix; // Obtiene TR02, TR10, etc.
   
   var nombreCapaGeoTIFF = `Depth_${numeroPasoFormateado}_${cadenaFechaFinal}_${sufijoTR}`;

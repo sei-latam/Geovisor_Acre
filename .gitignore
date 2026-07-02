@@ -11,3 +11,9 @@
 
 # Ignorar temporales de Python
 __pycache__/
+charts/depth_TR2.csv
+charts/depth_TR10.csv
+charts/depth_TR50.csv
+charts/depth_TR100.csv
+charts/depth_TR2023.csv
+
