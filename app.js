@@ -245,7 +245,6 @@ async function procesarConsultaAutomatica() {
   document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-amber-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
   document.getElementById('badgeEstado').innerText = "Descargando...";
 
-  // Llamado real al CSV de GitHub de este TR específico
   var datosPlanActual = await descargarYProcesarCSV(planSeleccionado);
   
   if (!datosPlanActual || datosPlanActual.length === 0) {
