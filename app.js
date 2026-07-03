@@ -556,6 +556,9 @@ function activarHerramientaDibujo(tipo) {
 function calcularDistanciaRuta(puntos) { var dist = 0; for (var i = 0; i < puntos.length - 1; i++) { dist += puntos[i].distanceTo(puntos[i+1]); } return dist; }
 function limpiarDibujos() { capasDibujo.clearLayers(); desactivarModosMapa(); }
 
+
+
+
 var debounceTimer;
 function buscarSugerencias() {
   clearTimeout(debounceTimer); var query = document.getElementById('searchInput').value.trim();
@@ -590,7 +593,7 @@ async function ejecutarBusquedaDirecta() {
 }
 function toggleLeyenda() { document.getElementById('panelLeyenda').classList.toggle('hidden'); }
 
-function volverAlHome() { map.setView([-11.018, -68.752], 13); }
+function volverAlHome() { map.setView([-11.018, -68.752], 14); }
 
 function obtenerUbicacionActual() {
   map.locate({setView: true, maxZoom: 15});

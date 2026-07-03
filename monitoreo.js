@@ -25,21 +25,21 @@ var mapaBaseActivoActual = grupoSateliteHibrido;
 mapaBaseActivoActual.addTo(map);
 
 // --- CONFIGURACIÓN DE TU GEOSERVER (WMS) ---
-var GEOSERVER_URL = "http://localhost:8080/geoserver/wms"; // Reemplaza con tu servidor local o IP pública
+var GEOSERVER_URL = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
 
 var capaInundacion1 = L.tileLayer.wms(GEOSERVER_URL, {
-  layers: 'workspace:evento_inundacion_1', // Cambiar por tu workspace:nombre_capa real
+  layers: 'rio_acre_manchas:Evento_20230325_smooth27_2',
   format: 'image/png',
   transparent: true,
-  version: '1.1.1',
+  version: '1.1.0',
   attribution: "GeoServer"
 });
 
 var capaInundacion2 = L.tileLayer.wms(GEOSERVER_URL, {
-  layers: 'workspace:evento_inundacion_2', // Cambiar por tu workspace:nombre_capa real
+  layers: 'rio_acre_manchas:Evento_20240224_smooth27_2',
   format: 'image/png',
   transparent: true,
-  version: '1.1.1',
+  version: '1.1.0',
   attribution: "GeoServer"
 });
 
@@ -173,15 +173,62 @@ async function ejecutarBusquedaDirecta() {
   } catch(e) { console.error(e); }
 }
 
-function volverAlHome() { map.setView([-11.0, -68.7], 12); }
+function activarHerramientaDibujo(tipo) {
+  if (herramientaActiva === tipo) { desactivarModosMapa(); return; }
+  desactivarModosMapa();
+  herramientaActiva = tipo;
+  var btnEl = document.getElementById(`btn-draw-${tipo}`);
+  if(btnEl) btnEl.classList.add('arcgis-btn-active');
+  document.getElementById('statusDibujo').innerText = `Modo: ${tipo.toUpperCase()} activo`;
+
+  if (tipo === 'point') {
+    map.on('click', function(e) { L.marker(e.latlng).addTo(capasDibujo); desactivarModosMapa(); });
+  } else if (tipo === 'circle') {
+    map.on('mousedown', function(e) {
+      map.dragging.disable(); var centro = e.latlng;
+      dibujandoObjeto = L.circle(centro, {radius: 1, color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.3}).addTo(map);
+      map.on('mousemove', function(ev) { dibujandoObjeto.setRadius(centro.distanceTo(ev.latlng)); });
+      map.on('mouseup', function() { dibujandoObjeto.addTo(capasDibujo); dibujandoObjeto = null; desactivarModosMapa(); });
+    });
+  } else if (tipo === 'rectangle') {
+    map.on('mousedown', function(e) {
+      map.dragging.disable(); var p1 = e.latlng;
+      dibujandoObjeto = L.rectangle([p1, p1], {color: '#2563eb', fillColor: '#3b82f6', fillOpacity: 0.3}).addTo(map);
+      map.on('mousemove', function(ev) { dibujandoObjeto.setBounds([p1, ev.latlng]); });
+      map.on('mouseup', function() { dibujandoObjeto.addTo(capasDibujo); dibujandoObjeto = null; desactivarModosMapa(); });
+    });
+  } else if (tipo === 'measure') {
+    puntosMedicion = [];
+    dibujandoObjeto = L.polyline([], {color: '#ef4444', weight: 4, dashArray: '6, 6'}).addTo(map);
+    tooltipMedicion = L.tooltip({permanent: true, className: 'medicion-tooltip', direction: 'top'});
+    map.on('click', function(e) {
+      puntosMedicion.push(e.latlng); dibujandoObjeto.setLatLngs(puntosMedicion);
+      var dist = calcularDistanciaRuta(puntosMedicion);
+      tooltipMedicion.setLatLng(e.latlng).setContent(`${dist > 1000 ? (dist/1000).toFixed(2)+' km' : dist.toFixed(0)+' m'}`).addTo(map);
+    });
+    map.on('mousemove', function(e) {
+      if(puntosMedicion.length > 0) {
+        var temp = [...puntosMedicion, e.latlng]; dibujandoObjeto.setLatLngs(temp);
+        var dist = calcularDistanciaRuta(temp);
+        tooltipMedicion.setLatLng(e.latlng).setContent(`Distancia: ${dist > 1000 ? (dist/1000).toFixed(2)+' km' : dist.toFixed(0)+' m'}`);
+      }
+    });
+    map.on('dblclick', function() {
+      var distFinal = calcularDistanciaRuta(puntosMedicion);
+      L.polyline(puntosMedicion, {color: '#b91c1c', weight: 3}).bindPopup(`<b>Afectacion critica:</b> ${distFinal > 1000 ? (distFinal/1000).toFixed(2)+' km' : distFinal.toFixed(1)+' m'}`).addTo(capasDibujo);
+      desactivarModosMapa();
+    });
+  }
+}
+function calcularDistanciaRuta(puntos) { var dist = 0; for (var i = 0; i < puntos.length - 1; i++) { dist += puntos[i].distanceTo(puntos[i+1]); } return dist; }
+
+function volverAlHome() { map.setView([-11.018, -68.752], 14); }
+
 function obtenerUbicacionActual() {
   map.locate({setView: true, maxZoom: 15});
 }
 
-function activarHerramientaDibujo(tipo) {
-  var status = document.getElementById('statusDibujo');
-  status.innerText = "Herramienta '" + tipo + "' activa.";
-}
+
 function limpiarDibujos() {
   document.getElementById('statusDibujo').innerText = "Ninguna herramienta activa";
 }
