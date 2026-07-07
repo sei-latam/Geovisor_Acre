@@ -11,19 +11,15 @@ const auth0Config = {
   }
 };
 
-// Función de arranque directo
+// Función de arranque directo adaptada a tu archivo local de Auth0
 async function inicializarAutenticacion() {
   try {
-    // Intentar leer de la ventana global 'window' o del objeto 'auth0'
-    if (typeof window.createAuth0Client === "function") {
-      auth0Client = await window.createAuth0Client(auth0Config);
-    } else if (typeof auth0 !== "undefined" && typeof auth0.createAuth0Client === "function") {
-      auth0Client = await auth0.createAuth0Client(auth0Config);
-    } else if (typeof auth0 !== "undefined" && auth0.Auth0Client) {
-      // Si exporta la clase directamente en lugar del helper
+    // Verificamos con delicadeza que el objeto 'auth0' y su clase constructora existan
+    if (typeof auth0 !== "undefined" && auth0.Auth0Client) {
+      // Instanciamos la clase de forma directa usando 'new' como exige el archivo
       auth0Client = new auth0.Auth0Client(auth0Config);
     } else {
-      throw new Error("No se encontró el inicializador de Auth0 en la memoria del navegador.");
+      throw new Error("El objeto global 'auth0' o la clase 'Auth0Client' no están disponibles en la memoria.");
     }
 
     // Procesar la respuesta de Auth0 tras el inicio de sesión exitoso
