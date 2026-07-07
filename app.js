@@ -662,23 +662,24 @@ function descargarDatosCSVActual() {
 
 
 // =========================================================================
-// NUEVA FUNCIÓN: LEER HISTORIAL PERMANENTE E INYECTARLO EN TU TABLA
+// FUNCIÓN IMPORTADORA: FUERZA LA INYECCIÓN DIRECTA EN EL ARRAY
 // =========================================================================
 async function cargarHistorialPersistente() {
   if (typeof obtenerHistorialDeAuth0 === "function") {
+    console.log("> Solicitando importación de datos a Auth0...");
     var historialGuardado = await obtenerHistorialDeAuth0();
     
     if (historialGuardado && historialGuardado.length > 0) {
-      // Limpiamos el array actual de forma segura
-      historialConsultas.length = 0;
+      // Reasignación directa del array global con los datos de la nube
+      historialConsultas = historialGuardado;
       
-      // Inyectamos uno a uno los elementos importados desde el metadata de Auth0
-      historialGuardado.forEach(item => {
-        historialConsultas.push(item);
-      });
-      
-      // Invocamos tu función para dibujar las filas de inmediato
+      // Forzar el pintado en la tabla inmediatamente
       actualizarRenderTablaHistorial();
+      console.log("> Tabla renderizada con los datos importados.");
+    } else {
+      console.log("> No se encontraron consultas previas en Auth0 para este usuario.");
     }
+  } else {
+    console.warn("> La función obtenerHistorialDeAuth0 no está disponible aún.");
   }
 }

@@ -61,7 +61,7 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   // Capturar de forma segura la página en la que está parado el usuario
   const paginaActual = window.location.pathname.split("/").pop();
 
-  if (isAuthenticated) {
+if (isAuthenticated) {
     const user = await auth0Client.getUser();
     if (btnLogin) btnLogin.classList.add("hidden");
     if (userProfile) userProfile.classList.remove("hidden");
@@ -69,15 +69,10 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     
     // Muestra el módulo de áreas de inundación si el usuario inició sesión
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
-
-    // =========================================================================
-    // MODIFICACIÓN PASO A PASO: Inyectar la carga del historial al validar sesión
-    // =========================================================================
-    if (typeof cargarHistorialPersistente === "function") {
-      cargarHistorialPersistente();
-    }
     
-  } else {
+    // ELIMINADO EL LLAMADO DESDE AQUÍ PARA EVITAR CONFLICTO DE TIEMPOS
+  }
+   else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
     
