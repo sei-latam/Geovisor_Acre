@@ -390,17 +390,17 @@ async function actualizarRenderTablaHistorial() {
   tbody.innerHTML = "";
 
   // =========================================================================
-  // CONEXIÓN CRUCIAL DE ARRANQUE: Descarga el JSON de Auth0 e inyéctalo
+  // CONEXIÓN DIRECTA DE ARRANQUE: Baja el JSON de Auth0 si el array local está vacío
   // =========================================================================
   if (typeof obtenerHistorialDeAuth0 === "function" && historialConsultas.length === 0) {
     try {
       var jsonDescargado = await obtenerHistorialDeAuth0();
       if (jsonDescargado && jsonDescargado.length > 0) {
-        // Estampamos el JSON directamente sobre el array que recorre esta función
+        // Clavamos el JSON descargado directamente en tu array global
         historialConsultas = jsonDescargado;
       }
-    } catch (e) {
-      console.error("Error al inyectar el JSON de Auth0 en la tabla:", e);
+    } catch (error) {
+      console.error("Error al importar el historial desde la API de Auth0:", error);
     }
   }
 
@@ -412,12 +412,14 @@ async function actualizarRenderTablaHistorial() {
   historialConsultas.forEach((item, index) => {
     var fila = document.createElement('tr');
     fila.className = "hover:bg-slate-50 transition-colors border-b border-slate-100 text-slate-700 font-medium";
+    
+    // Mapeo estricto con las propiedades exactas de tu PDF ("plan", "depth", "fechaDetectada", "servicio")
     fila.innerHTML = `
       <td class="p-2 text-center font-bold text-slate-400">${index + 1}</td>
-      <td class="p-2 font-bold text-slate-800">${item.plan}</td>
-      <td class="p-2 font-mono text-blue-600 font-semibold">${item.depth} m</td>
-      <td class="p-2 text-slate-600 text-[11px] font-sans">${item.fechaDetectada.replace('T', ' ')}</td>
-      <td class="p-2 text-yellow-600 font-mono text-[10px] truncate max-w-[180px]" title="${item.servicio}">${item.servicio}</td>
+      <td class="p-2 font-bold text-slate-800">${item.plan || ''}</td>
+      <td class="p-2 font-mono text-blue-600 font-semibold">${item.depth || 0} m</td>
+      <td class="p-2 text-slate-600 text-[11px] font-sans">${item.fechaDetectada ? item.fechaDetectada.replace('T', ' ') : ''}</td>
+      <td class="p-2 text-yellow-600 font-mono text-[10px] truncate max-w-[180px]" title="${item.servicio || ''}">${item.servicio || ''}</td>
       <td class="p-2 text-center">
         <button onclick="removerConsultaHistorial(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 rounded p-1.5 transition-colors">
           <i class="fa-solid fa-trash-can text-xs"></i>
@@ -430,11 +432,13 @@ async function actualizarRenderTablaHistorial() {
 
 function removerConsultaHistorial(index) {
   var item = historialConsultas[index];
-  if(item) { map.removeLayer(item.instanciaCapa); }
+  if(item && item.instanciaCapa && map) { map.removeLayer(item.instanciaCapa); }
+  
+  // Eliminar el elemento del array local
   historialConsultas.splice(index, 1);
-
+  
   // =========================================================================
-  // CONEXIÓN EN CALIENTE AL ELIMINAR: Actualiza Auth0 con el array recortado
+  // SINCRONIZACIÓN AL ELIMINAR: Sube el array recortado a Auth0 de inmediato
   // =========================================================================
   if (typeof sincronizarHistorialConAuth0 === "function") {
     sincronizarHistorialConAuth0(historialConsultas);

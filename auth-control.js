@@ -71,7 +71,7 @@ if (isAuthenticated) {
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
 
     // =========================================================================
-    // LA CONEXIÓN DEFINITIVA: Despierta el renderizador nativo de app.js
+    // LA UNIÓN FÍSICA: Despierta tu tabla nativa en el instante exacto del Login
     // =========================================================================
     if (typeof actualizarRenderTablaHistorial === "function") {
       actualizarRenderTablaHistorial();
@@ -135,22 +135,22 @@ if (document.readyState === "loading") {
   inicializarAutenticacion();
 }
 
-
 async function sincronizarHistorialConAuth0(historialOriginal) {
   try {
     if (!auth0Client) return;
     const token = await auth0Client.getTokenSilently();
     const user = await auth0Client.getUser();
 
+    // Mapeo crudo de propiedades de texto puro para la nube
     const datosParaGuardar = historialOriginal.map(item => ({
       plan: item.plan,
       depth: item.depth,
       fechaDetectada: item.fechaDetectada,
-      servicio: item.servicio 
+      servicio: item.servicio
     }));
 
     const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
-    const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+    await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
       method: "PATCH",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -160,11 +160,45 @@ async function sincronizarHistorialConAuth0(historialOriginal) {
         user_metadata: { consultas: datosParaGuardar }
       })
     });
-    if (!respuesta.ok) throw new Error("Rechazado por Auth0.");
+    console.log("> Guardado exitoso en la nube.");
   } catch (error) {
-    console.error("Error al persistir en Auth0:", error);
+    console.error("Error al guardar en Auth0:", error);
   }
 }
+
+async function obtenerHistorialDeAuth0() {
+  try {
+    if (!auth0Client) return [];
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (!isAuthenticated) return [];
+
+    const token = await auth0Client.getTokenSilently();
+    const user = await auth0Client.getUser();
+    const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
+
+    // Petición GET directa y cruda para descargar el perfil con el metadata actualizado
+    const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!respuesta.ok) return [];
+    const perfilCompleto = await respuesta.json();
+    
+    if (perfilCompleto && perfilCompleto.user_metadata && perfilCompleto.user_metadata.consultas) {
+      console.log("> JSON descargado de Auth0 con éxito.");
+      return perfilCompleto.user_metadata.consultas;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error al descargar el JSON de Auth0:", error);
+    return [];
+  }
+}
+
 
 async function obtenerHistorialDeAuth0() {
   try {
