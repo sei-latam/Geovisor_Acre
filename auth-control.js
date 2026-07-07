@@ -58,6 +58,9 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   const userName = document.getElementById("user-name");
   const navAreasInundacion = document.getElementById("nav-areas-inundacion");
 
+  // Capturar de forma segura la página en la que está parado el usuario
+  const paginaActual = window.location.pathname.split("/").pop();
+
   if (isAuthenticated) {
     const user = await auth0Client.getUser();
     if (btnLogin) btnLogin.classList.add("hidden");
@@ -72,6 +75,14 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     
     // Oculta el módulo por completo si no está autenticado
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
+
+    // =========================================================================
+    // BLINDAJE ADICIONAL: Si es un invitado e intenta forzar la URL, se expulsa
+    // =========================================================================
+    if (paginaActual === "areas_inundacion.html") {
+      alert("Acceso denegado. Este módulo requiere iniciar sesión de forma obligatoria.");
+      window.location.href = "index.html";
+    }
   }
 
   // Configuración blindada del botón de Ingreso
