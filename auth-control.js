@@ -1,16 +1,19 @@
-// auth-control.js - Controlador Central de Acceso para GitHub Pages
+// auth-control.js - Controlador Central de Acceso Persistente para GitHub Pages
 let auth0Client = null;
 
-// CONFIGURACIÓN OFICIAL: Mapeada estrictamente con las URLs validadas
+// CONFIGURACIÓN AVANZADA: Persistencia de sesión entre múltiples páginas HTML
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
-  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID Real verificado letra por letra
+  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID verificado letra por letra
+  
+  // OBLIGATORIO PARA MULTIPÁGINA: Almacena los tokens para no olvidar la sesión al cambiar de archivo HTML
+  cacheLocation: 'localstorage', 
+  useRefreshTokens: true,        
   
   authorizationParams: {
     client_id: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
     clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
-    
-    // FIJO Y ESTRICTO: Copia exacta de la URL que requiere el servidor de Auth0
+    // Redirección unificada fija a la raíz configurada en el Dashboard de Auth0
     redirect_uri: "https://sei-latam.github.io/Geovisor_Acre/"
   }
 };
@@ -18,29 +21,34 @@ const auth0Config = {
 // Función de arranque directo adaptada a tu archivo local de Auth0
 async function inicializarAutenticacion() {
   try {
-    // Verificamos con delicadeza que el objeto 'auth0' y su clase constructora existan
+    // Verificar rigurosamente la disponibilidad de la clase en tu librería local
     if (typeof auth0 !== "undefined" && auth0.Auth0Client) {
-      // Instanciamos la clase de forma directa usando 'new' como exige el archivo
       auth0Client = new auth0.Auth0Client(auth0Config);
     } else {
       throw new Error("El objeto global 'auth0' o la clase 'Auth0Client' no están disponibles en la memoria.");
     }
 
-    // Procesar la respuesta de Auth0 tras el inicio de sesión exitoso
+    // 1. Procesar la respuesta de Auth0 si el usuario viene del formulario externo de login
     const query = window.location.search;
     if (query.includes("code=") && query.includes("state=")) {
       await auth0Client.handleRedirectCallback();
-      // Limpia los tokens de la barra de direcciones en GitHub Pages
+      // Limpia de inmediato los tokens expuestos en la barra de direcciones
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // Validar el estado del usuario
-    const isAuthenticated = await auth0Client.isAuthenticated();
+    // 2. Recuperar el estado de autenticación desde la persistencia (localstorage)
+    let isAuthenticated = false;
+    try {
+      isAuthenticated = await auth0Client.isAuthenticated();
+    } catch (cacheErr) {
+      console.warn("Retraso temporal al leer la sesión del almacenamiento local:", cacheErr);
+    }
+
+    // 3. Aplicar las reglas visuales a la interfaz del módulo actual
     actualizarInterfazYAcceso(isAuthenticated);
 
   } catch (error) {
     console.error("Error crítico en el núcleo de Auth0:", error);
-    // Forzamos el renderizado público de la interfaz si el chequeo inicial falla por red
     actualizarInterfazYAcceso(false);
   }
 }
@@ -52,23 +60,36 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   const userName = document.getElementById("user-name");
   const navAreasInundacion = document.getElementById("nav-areas-inundacion");
 
+  // Capturar el nombre del archivo actual para control estricto de rutas manuales
+  const paginaActual = window.location.pathname.split("/").pop();
+
   if (isAuthenticated) {
-    const user = await auth0Client.getUser();
-    if (btnLogin) btnLogin.classList.add("hidden");
-    if (userProfile) userProfile.classList.remove("hidden");
-    if (userName) userName.textContent = user.name || user.email;
+    try {
+      const user = await auth0Client.getUser();
+      if (btnLogin) btnLogin.classList.add("hidden");
+      if (userProfile) userProfile.classList.remove("hidden");
+      if (userName) userName.textContent = user.name || user.email;
+    } catch (err) {
+      console.error("Error al extraer los datos del usuario logeado:", err);
+    }
     
-    // Muestra el módulo de áreas de inundación si el usuario inició sesión
+    // RESTRICCIÓN: El acceso visual al módulo de áreas de inundación solo se activa aquí
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
     
-    // Oculta el módulo por completo si no está autenticado
+    // Si no está autenticado, el botón de áreas de inundación se mantiene oculto
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
+
+    // BLINDAJE DE URL DIRECTA: Si un invitado intenta forzar la URL del módulo protegido, es expulsado de inmediato
+    if (paginaActual === "areas_inundacion.html") {
+      alert("Acceso denegado. Este módulo requiere iniciar sesión de forma obligatoria.");
+      window.location.href = "index.html";
+    }
   }
 
-  // Configuración blindada del botón de Ingreso
+  // Configuración del evento del botón de Ingreso
   if (btnLogin) {
     btnLogin.onclick = async (e) => {
       e.preventDefault();
@@ -76,7 +97,6 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
         if (auth0Client) {
           await auth0Client.loginWithRedirect();
         } else {
-          console.warn("auth0Client no inicializado al hacer click. Reintentando instanciar...");
           auth0Client = new auth0.Auth0Client(auth0Config);
           await auth0Client.loginWithRedirect();
         }
@@ -86,13 +106,13 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     };
   }
 
-  // Configuración del botón de Salida
+  // Configuración del botón de Salida (Logout)
   const btnLogout = document.getElementById("btn-logout");
   if (btnLogout) {
     btnLogout.onclick = (e) => {
       e.preventDefault();
       try {
-        // Al cerrar sesión, lo enviamos siempre a la raíz limpia
+        // Al cerrar sesión se limpia de raíz el almacenamiento persistente
         auth0Client.logout({ 
           logoutParams: { returnTo: "https://sei-latam.github.io/Geovisor_Acre/" } 
         });
@@ -103,7 +123,7 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   }
 }
 
-// Arrancar cuando el árbol HTML esté completamente cargado
+// Inicialización controlada una vez el árbol HTML esté listo en el navegador
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", inicializarAutenticacion);
 } else {
