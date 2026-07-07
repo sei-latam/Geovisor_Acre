@@ -1,10 +1,10 @@
 // Rampa de colores idéntica al ColorMap del estilo SLD "estilo_inundacion" en GeoServer
 var rampaColoresInundacion = [
-  { limite: 0,  color: "#ffffff", etiqueta: "0 metros" },
-  { limite: 2,  color: "#a6bddb", etiqueta: "2 metros" },
-  { limite: 6,  color: "#3690c0", etiqueta: "6 metros" },
-  { limite: 12, color: "#023858", etiqueta: "12 metros" },
-  { limite: 17, color: "#4a1486", etiqueta: "17 metros" }
+  { limite: 0,  color: "#ffffff", etiqueta: "Seco" },
+  { limite: 2,  color: "#a6bddb", etiqueta: "Inundación Baja" },
+  { limite: 6,  color: "#3690c0", etiqueta: "Inundación Moderada" },
+  { limite: 12, color: "#023858", etiqueta: "Inundación Alta" },
+  { limite: 17, color: "#4a1486", etiqueta: "Inundación Extrema" }
 ];
 
 // Devuelve el color de la rampa correspondiente a una profundidad (depth) dada
@@ -556,6 +556,8 @@ function calcularDistanciaRuta(puntos) { var dist = 0; for (var i = 0; i < punto
 function limpiarDibujos() { capasDibujo.clearLayers(); desactivarModosMapa(); }
 
 
+
+
 var debounceTimer;
 function buscarSugerencias() {
   clearTimeout(debounceTimer); var query = document.getElementById('searchInput').value.trim();
@@ -580,7 +582,6 @@ function buscarSugerencias() {
     } catch (e) { console.error(e); }
   }, 400);
 }
-
 async function ejecutarBusquedaDirecta() {
   var query = document.getElementById('searchInput').value.trim(); if (!query) return;
   try {
@@ -589,7 +590,6 @@ async function ejecutarBusquedaDirecta() {
     if (data && data.length > 0) { map.setView([parseFloat(data[0].lat), parseFloat(data[0].lon)], 15); }
   } catch (e) { console.error(e); }
 }
-
 function toggleLeyenda() { document.getElementById('panelLeyenda').classList.toggle('hidden'); }
 
 function volverAlHome() { map.setView([-11.018, -68.752], 14); }
