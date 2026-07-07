@@ -6,7 +6,6 @@ const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
   client_id: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p",
   authorizationParams: {
-    // Captura dinámicamente la URL exacta del repositorio en GitHub Pages donde está parado el usuario
     redirect_uri: window.location.origin + window.location.pathname
   }
 };
@@ -14,6 +13,13 @@ const auth0Config = {
 // Función principal que se ejecuta automáticamente al cargar la página
 async function inicializarAutenticacion() {
   try {
+    // NUEVO BLINDAJE: Si la librería de la CDN aún no se define, esperamos 300ms y reintentamos
+    if (typeof createAuth0Client === "undefined") {
+      console.warn("Auth0 SDK no detectado aún, reintentando en 300ms...");
+      setTimeout(inicializarAutenticacion, 300);
+      return;
+    }
+
     // 1. Inicializar el cliente SDK de Auth0
     auth0Client = await createAuth0Client(auth0Config);
 
@@ -21,7 +27,6 @@ async function inicializarAutenticacion() {
     const query = window.location.search;
     if (query.includes("code=") && query.includes("state=")) {
       await auth0Client.handleRedirectCallback();
-      // Limpia la URL de los códigos y tokens de Auth0 para que se vea limpia en producción
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -35,6 +40,8 @@ async function inicializarAutenticacion() {
     console.error("Error crítico inicializando Auth0:", error);
   }
 }
+
+// ... (Todo el resto de tus funciones actualizarInterfazYAcceso se quedan exactamente igual)
 
 // Controla qué elementos se ven en el menú y maneja la expulsión de intrusos
 async function actualizarInterfazYAcceso(isAuthenticated) {
