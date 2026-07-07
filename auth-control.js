@@ -1,105 +1,95 @@
-// auth-control.js - Controlador Central de Acceso optimizado para GitHub Pages
+// auth-control.js - Controlador Central de Acceso para GitHub Pages
 let auth0Client = null;
 
-// Configuración oficial con tus credenciales reales de Auth0
+// Configuración validada con tus credenciales reales
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
   client_id: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p",
   authorizationParams: {
+    // Genera automáticamente la URL exacta del módulo en producción (ej: https://sei-latam.github.io/Geovisor_Acre/index.html)
     redirect_uri: window.location.origin + window.location.pathname
   }
 };
 
-// Función principal que se ejecuta automáticamente al cargar la página
+// Función de arranque directo
 async function inicializarAutenticacion() {
   try {
-    // NUEVO BLINDAJE: Si la librería de la CDN aún no se define, esperamos 300ms y reintentamos
-    if (typeof createAuth0Client === "undefined") {
-      console.warn("Auth0 SDK no detectado aún, reintentando en 300ms...");
-      setTimeout(inicializarAutenticacion, 300);
-      return;
+    // CORRECCIÓN CLAVE: El archivo adjunto expone las funciones dentro del objeto 'auth0'
+    if (typeof auth0 !== "undefined" && auth0.createAuth0Client) {
+      auth0Client = await auth0.createAuth0Client(auth0Config);
+    } else {
+      throw new Error("La librería local de Auth0 no se ha cargado correctamente en el objeto global 'auth0'.");
     }
 
-    // 1. Inicializar el cliente SDK de Auth0
-    auth0Client = await createAuth0Client(auth0Config);
-
-    // 2. Procesar el retorno si el usuario viene de logearse en la interfaz de Auth0
+    // Procesar la respuesta de Auth0 tras el inicio de sesión exitoso
     const query = window.location.search;
     if (query.includes("code=") && query.includes("state=")) {
       await auth0Client.handleRedirectCallback();
+      // Limpia los tokens de la barra de direcciones en GitHub Pages
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // 3. Revisar el estado de autenticación del usuario actual
+    // Validar el estado del usuario
     const isAuthenticated = await auth0Client.isAuthenticated();
-
-    // 4. Aplicar las reglas de visualización en el menú y los bloqueos de seguridad
     actualizarInterfazYAcceso(isAuthenticated);
 
   } catch (error) {
-    console.error("Error crítico inicializando Auth0:", error);
+    console.error("Error crítico en el núcleo de Auth0:", error);
   }
 }
 
-// ... (Todo el resto de tus funciones actualizarInterfazYAcceso se quedan exactamente igual)
-
-// Controla qué elementos se ven en el menú y maneja la expulsión de intrusos
+// Manejo estricto de la interfaz según el estado de autenticación
 async function actualizarInterfazYAcceso(isAuthenticated) {
   const btnLogin = document.getElementById("btn-login");
   const userProfile = document.getElementById("user-profile");
   const userName = document.getElementById("user-name");
   const navAreasInundacion = document.getElementById("nav-areas-inundacion");
 
-  // Identificar qué archivo HTML específico está abierto en el navegador
+  // Captura el archivo HTML actual (index.html, areas_inundacion.html, etc.)
   const paginaActual = window.location.pathname.split("/").pop();
 
   if (isAuthenticated) {
-    // --- ESCENARIO: USUARIO AUTENTICADO ---
     const user = await auth0Client.getUser();
-    
     if (btnLogin) btnLogin.classList.add("hidden");
     if (userProfile) userProfile.classList.remove("hidden");
     if (userName) userName.textContent = user.name || user.email;
-    
-    // HACER VISIBLE el módulo de áreas de inundación en el menú para el usuario registrado
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
-
   } else {
-    // --- ESCENARIO: INVITADO O ANÓNIMO ---
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
-    
-    // MANTENER OCULTO el módulo técnico de áreas de inundación en el menú público
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
 
-    // SEGURO DOUBLE: Si un invitado intenta burlar el menú escribiendo la URL a mano
+    // Bloqueo estricto por URL manual
     if (paginaActual === "areas_inundacion.html") {
       alert("Acceso denegado. Este módulo requiere iniciar sesión.");
-      // Redirección segura relativa a la raíz del sitio en GitHub Pages
       window.location.href = "index.html";
     }
   }
 
-  // --- ASIGNAR DISPARADORES A LOS BOTONES DE LA CABECERA ---
+  // Configuración del botón de Ingreso
   if (btnLogin) {
-    btnLogin.addEventListener("click", async () => {
+    btnLogin.onclick = async (e) => {
+      e.preventDefault();
       await auth0Client.loginWithRedirect();
-    });
+    };
   }
 
+  // Configuración del botón de Salida
   const btnLogout = document.getElementById("btn-logout");
   if (btnLogout) {
-    btnLogout.addEventListener("click", () => {
-      // Reemplaza de forma segura el archivo actual por index.html respetando la ruta base de GitHub Pages
+    btnLogout.onclick = (e) => {
+      e.preventDefault();
       const urlRetorno = window.location.origin + window.location.pathname.replace(paginaActual, "index.html");
       auth0Client.logout({ 
-        logoutParams: { 
-          returnTo: urlRetorno
-        } 
+        logoutParams: { returnTo: urlRetorno } 
       });
-    });
+    };
   }
 }
 
-// Escuchar cuando el árbol DOM del HTML esté listo para arrancar la verificación
-document.addEventListener("DOMContentLoaded", inicializarAutenticacion);
+// Arrancar cuando el árbol HTML esté completamente cargado
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", inicializarAutenticacion);
+} else {
+  inicializarAutenticacion();
+}
