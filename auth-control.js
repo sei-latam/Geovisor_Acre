@@ -1,24 +1,26 @@
 // auth-control.js - Controlador Central de Acceso Persistente Dinámico
 let auth0Client = null;
 
-// Captura dinámicamente la URL exacta del navegador (ej: https://sei-latam.github.io/Geovisor_Acre/pronostico.html)
-const urlActualAbsoluta = window.location.origin + window.location.pathname;
+// CORRECCIÓN LÓGICA DE URL: Asegura que la ruta no duplique ni altere los parámetros de Auth0
+let urlActualAbsoluta = window.location.origin + window.location.pathname;
+if (urlActualAbsoluta.endsWith("/")) {
+  urlActualAbsoluta = urlActualAbsoluta + "index.html";
+}
 
-// ID REAL CORREGIDO LETRA POR LETRA: rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p
+// ID REAL DEL SISTEMA VERIFICADO CARÁCTER POR CARÁCTER:
 const CLIENT_ID_EXACTO = "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p";
 
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
   clientId: CLIENT_ID_EXACTO, 
   
-  // Mantiene la sesión viva al cambiar entre los archivos HTML leyendo el LocalStorage
+  // Almacenamiento local para no perder la sesión entre módulos HTML
   cacheLocation: 'localstorage', 
   useRefreshTokens: true,        
   
   authorizationParams: {
     client_id: CLIENT_ID_EXACTO, 
-    // Hace que Auth0 te devuelva exactamente al módulo donde iniciaste el flujo
-    redirect_uri: urlActualAbsoluta
+    redirect_uri: urlActualAbsoluta // Envía la URL limpia e idéntica a la configurada en tu panel
   }
 };
 
@@ -31,14 +33,14 @@ async function inicializarAutenticacion() {
       throw new Error("El objeto global 'auth0' o la clase 'Auth0Client' no están disponibles.");
     }
 
-    // 1. Procesar la respuesta del servidor en cualquier módulo donde aterrice el usuario
+    // 1. Procesar la respuesta de Auth0 si venimos de la redirección de login
     const query = window.location.search;
     if (query.includes("code=") && query.includes("state=")) {
       await auth0Client.handleRedirectCallback();
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // 2. Comprobar de inmediato la sesión persistente en el LocalStorage
+    // 2. Comprobar la sesión activa en LocalStorage
     let isAuthenticated = false;
     try {
       isAuthenticated = await auth0Client.isAuthenticated();
@@ -73,14 +75,14 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
       console.error("Error al extraer los datos del usuario logeado:", err);
     }
     
-    // Si está autenticado, habilitamos el acceso visual al módulo protegido
+    // Si está autenticado, se muestra el módulo restringido
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
 
-    // Blindaje de URL manual para invitados
+    // Bloqueo manual para invitados si intentan forzar la URL
     if (paginaActual === "areas_inundacion.html") {
       alert("Acceso denegado. Este módulo requiere iniciar sesión de forma obligatoria.");
       window.location.href = "index.html";
@@ -105,7 +107,7 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     btnLogout.onclick = (e) => {
       e.preventDefault();
       try {
-        // Cierra sesión devolviendo al usuario de forma limpia a la misma página donde está parado
+        // Cierra sesión devolviendo al usuario a la URL absoluta limpia
         auth0Client.logout({ 
           logoutParams: { returnTo: urlActualAbsoluta } 
         });
