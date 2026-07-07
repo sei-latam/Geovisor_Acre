@@ -384,7 +384,6 @@ function guardarConsultaEnHistorial() {
   actualizarLeyendaDinamica();
 }
 
-
 function actualizarRenderTablaHistorial() {
   var tbody = document.getElementById('historialContenido');
   tbody.innerHTML = "";
@@ -417,9 +416,42 @@ function removerConsultaHistorial(index) {
   var item = historialConsultas[index];
   if(item) { map.removeLayer(item.instanciaCapa); }
   historialConsultas.splice(index, 1);
+  
+  // =========================================================================
+  // CONEXIÓN DE ELIMINACIÓN: Sincroniza el array recortado con la nube
+  // =========================================================================
+  if (typeof sincronizarHistorialConAuth0 === "function") {
+    sincronizarHistorialConAuth0(historialConsultas);
+  }
+
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
+
+// =========================================================================
+// CONEXIÓN DE CARGA: Fuerza al mapa a descargar el JSON y meterlo a tu tabla
+// =========================================================================
+(async function conectorInyeccionForzada() {
+  // Esperar un momento a que la sesión de Auth0 se valide físicamente
+  await new Promise(resolve => setTimeout(resolve, 2500));
+  
+  if (typeof obtenerHistorialDeAuth0 === "function") {
+    try {
+      var jsonDescargado = await obtenerHistorialDeAuth0();
+      if (jsonDescargado && jsonDescargado.length > 0) {
+        // Machacar el array global que lee tu renderizador nativo
+        historialConsultas = jsonDescargado;
+        // Forzar a tu función a pintar las filas
+        actualizarRenderTablaHistorial();
+        console.log("> Conexión exitosa: Datos inyectados en la tabla.");
+      }
+    } catch (e) {
+      console.error("> Error al conectar el JSON con la tabla:", e);
+    }
+  }
+})();
+
+
 
 function actualizarLeyendaDinamica() {
   renderizarRampaLeyenda();
