@@ -1,17 +1,17 @@
 // auth-control.js - Controlador Central de Acceso para GitHub Pages
 let auth0Client = null;
 
-// CONFIGURACIÓN CORREGIDA: Usando el client_id extraído directo de tu sistema
+// CONFIGURACIÓN OFICIAL: Mapeada estrictamente con las URLs validadas
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
-  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID Real Corregido
+  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID Real verificado letra por letra
   
   authorizationParams: {
-    client_id: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID Real Corregido
-    clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",   // ID Real Corregido
+    client_id: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
+    clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
     
-    // Genera automáticamente la URL exacta del módulo en producción (ej: https://sei-latam.github.io/Geovisor_Acre/index.html)
-    redirect_uri: window.location.origin + window.location.pathname
+    // FIJO Y ESTRICTO: Copia exacta de la URL que requiere el servidor de Auth0
+    redirect_uri: "https://sei-latam.github.io/Geovisor_Acre/"
   }
 };
 
