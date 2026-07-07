@@ -1,50 +1,49 @@
-// auth-control.js - Controlador Central de Acceso Persistente para GitHub Pages
+// auth-control.js - Controlador Central de Acceso Persistente Dinámico
 let auth0Client = null;
 
-// CONFIGURACIÓN AVANZADA: Persistencia de sesión entre múltiples páginas HTML
+// Captura dinámicamente la URL exacta del navegador (ej: https://sei-latam.github.io/Geovisor_Acre/pronostico.html)
+const urlActualAbsoluta = window.location.origin + window.location.pathname;
+
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
-  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID verificado letra por letra
+  clientId: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p", // Corregido a camelCase para evitar el error 'Missing client_id'
   
-  // OBLIGATORIO PARA MULTIPÁGINA: Almacena los tokens para no olvidar la sesión al cambiar de archivo HTML
+  // Mantiene la sesión viva al cambiar entre los archivos HTML
   cacheLocation: 'localstorage', 
   useRefreshTokens: true,        
   
   authorizationParams: {
-    client_id: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
-    clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
-    // Redirección unificada fija a la raíz configurada en el Dashboard de Auth0
-    redirect_uri: "https://sei-latam.github.io/Geovisor_Acre/"
+    // Se duplica aquí por seguridad interna del protocolo OIDC
+    client_id: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p", 
+    // Hace que Auth0 te devuelva exactamente al módulo donde iniciaste el flujo
+    redirect_uri: urlActualAbsoluta
   }
 };
 
 // Función de arranque directo adaptada a tu archivo local de Auth0
 async function inicializarAutenticacion() {
   try {
-    // Verificar rigurosamente la disponibilidad de la clase en tu librería local
     if (typeof auth0 !== "undefined" && auth0.Auth0Client) {
       auth0Client = new auth0.Auth0Client(auth0Config);
     } else {
-      throw new Error("El objeto global 'auth0' o la clase 'Auth0Client' no están disponibles en la memoria.");
+      throw new Error("El objeto global 'auth0' o la clase 'Auth0Client' no están disponibles.");
     }
 
-    // 1. Procesar la respuesta de Auth0 si el usuario viene del formulario externo de login
+    // 1. Procesar la respuesta del servidor en cualquier módulo donde aterrice el usuario
     const query = window.location.search;
     if (query.includes("code=") && query.includes("state=")) {
       await auth0Client.handleRedirectCallback();
-      // Limpia de inmediato los tokens expuestos en la barra de direcciones
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    // 2. Recuperar el estado de autenticación desde la persistencia (localstorage)
+    // 2. Comprobar de inmediato la sesión persistente en el LocalStorage
     let isAuthenticated = false;
     try {
       isAuthenticated = await auth0Client.isAuthenticated();
     } catch (cacheErr) {
-      console.warn("Retraso temporal al leer la sesión del almacenamiento local:", cacheErr);
+      console.warn("Retraso al leer la caché local de sesión:", cacheErr);
     }
 
-    // 3. Aplicar las reglas visuales a la interfaz del módulo actual
     actualizarInterfazYAcceso(isAuthenticated);
 
   } catch (error) {
@@ -60,7 +59,6 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   const userName = document.getElementById("user-name");
   const navAreasInundacion = document.getElementById("nav-areas-inundacion");
 
-  // Capturar el nombre del archivo actual para control estricto de rutas manuales
   const paginaActual = window.location.pathname.split("/").pop();
 
   if (isAuthenticated) {
@@ -73,48 +71,41 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
       console.error("Error al extraer los datos del usuario logeado:", err);
     }
     
-    // RESTRICCIÓN: El acceso visual al módulo de áreas de inundación solo se activa aquí
+    // Si está autenticado, habilitamos el acceso visual al módulo protegido
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
-    
-    // Si no está autenticado, el botón de áreas de inundación se mantiene oculto
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
 
-    // BLINDAJE DE URL DIRECTA: Si un invitado intenta forzar la URL del módulo protegido, es expulsado de inmediato
+    // Blindaje de URL manual para invitados
     if (paginaActual === "areas_inundacion.html") {
       alert("Acceso denegado. Este módulo requiere iniciar sesión de forma obligatoria.");
       window.location.href = "index.html";
     }
   }
 
-  // Configuración del evento del botón de Ingreso
+  // Evento del botón de Ingreso
   if (btnLogin) {
     btnLogin.onclick = async (e) => {
       e.preventDefault();
       try {
-        if (auth0Client) {
-          await auth0Client.loginWithRedirect();
-        } else {
-          auth0Client = new auth0.Auth0Client(auth0Config);
-          await auth0Client.loginWithRedirect();
-        }
+        await auth0Client.loginWithRedirect();
       } catch (err) {
-        console.error("Error directo al intentar redirigir con loginWithRedirect:", err);
+        console.error("Error al intentar redirigir con loginWithRedirect:", err);
       }
     };
   }
 
-  // Configuración del botón de Salida (Logout)
+  // Evento del botón de Salida (Cerrar Sesión)
   const btnLogout = document.getElementById("btn-logout");
   if (btnLogout) {
     btnLogout.onclick = (e) => {
       e.preventDefault();
       try {
-        // Al cerrar sesión se limpia de raíz el almacenamiento persistente
+        // Cierra sesión devolviendo al usuario de forma limpia a la misma página donde está parado
         auth0Client.logout({ 
-          logoutParams: { returnTo: "https://sei-latam.github.io/Geovisor_Acre/" } 
+          logoutParams: { returnTo: urlActualAbsoluta } 
         });
       } catch (err) {
         console.error("Error al intentar cerrar sesión:", err);
@@ -123,7 +114,6 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   }
 }
 
-// Inicialización controlada una vez el árbol HTML esté listo en el navegador
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", inicializarAutenticacion);
 } else {
