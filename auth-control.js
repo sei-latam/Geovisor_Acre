@@ -52,25 +52,20 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   const userName = document.getElementById("user-name");
   const navAreasInundacion = document.getElementById("nav-areas-inundacion");
 
-  // Captura el archivo HTML actual (index.html, areas_inundacion.html, etc.)
-  const paginaActual = window.location.pathname.split("/").pop();
-
   if (isAuthenticated) {
     const user = await auth0Client.getUser();
     if (btnLogin) btnLogin.classList.add("hidden");
     if (userProfile) userProfile.classList.remove("hidden");
     if (userName) userName.textContent = user.name || user.email;
+    
+    // Muestra el módulo de áreas de inundación si el usuario inició sesión
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
+    
+    // Oculta el módulo por completo si no está autenticado
     if (navAreasInundacion) navAreasInundacion.classList.add("hidden");
-
-    // Bloqueo estricto por URL manual
-    if (paginaActual === "areas_inundacion.html") {
-      alert("Acceso denegado. Este módulo requiere iniciar sesión.");
-      window.location.href = "index.html";
-    }
   }
 
   // Configuración blindada del botón de Ingreso
@@ -97,9 +92,9 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     btnLogout.onclick = (e) => {
       e.preventDefault();
       try {
-        const urlRetorno = window.location.origin + window.location.pathname.replace(paginaActual, "index.html");
+        // Al cerrar sesión, lo enviamos siempre a la raíz limpia
         auth0Client.logout({ 
-          logoutParams: { returnTo: urlRetorno } 
+          logoutParams: { returnTo: "https://sei-latam.github.io/Geovisor_Acre/" } 
         });
       } catch (err) {
         console.error("Error al intentar cerrar sesión:", err);
