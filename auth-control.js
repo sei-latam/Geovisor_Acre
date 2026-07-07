@@ -14,11 +14,12 @@ const auth0Config = {
     audience: "https://dev-v5pan6cu4bzobv4v.us.auth0.com/api/v2/",
     
     // =========================================================================
-    // MODIFICACIÓN FINAL: Otorga los permisos necesarios al token del Frontend
+    // EL ÚLTIMO PASO: Le pide a Auth0 que incluya el metadata al iniciar sesión
     // =========================================================================
-    scope: "openid profile email update:current_user_metadata read:current_user"
+    scope: "openid profile email read:current_user update:current_user_metadata"
   }
 };
+
 
 // Función de arranque directo adaptada a tu archivo local de Auth0
 async function inicializarAutenticacion() {
