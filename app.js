@@ -82,7 +82,7 @@ var estiloAsignado = "estilo_inundacion";
 
 var capaPrevisualizacionTemporal = null; 
 var consultaActualTemporal = null;       
-var historialConsultas = [];  
+var historialConsultas = [];
 
 const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
 
@@ -667,10 +667,17 @@ function descargarDatosCSVActual() {
 async function cargarHistorialPersistente() {
   if (typeof obtenerHistorialDeAuth0 === "function") {
     var historialGuardado = await obtenerHistorialDeAuth0();
+    
     if (historialGuardado && historialGuardado.length > 0) {
-      // Reemplazamos tu array global por los datos recuperados de Auth0
-      historialConsultas = historialGuardado;
-      // Invocamos tu función nativa (la que me acabas de mostrar) para dibujar la tabla
+      // Limpiamos el array actual de forma segura
+      historialConsultas.length = 0;
+      
+      // Inyectamos uno a uno los elementos importados desde el metadata de Auth0
+      historialGuardado.forEach(item => {
+        historialConsultas.push(item);
+      });
+      
+      // Invocamos tu función para dibujar las filas de inmediato
       actualizarRenderTablaHistorial();
     }
   }
