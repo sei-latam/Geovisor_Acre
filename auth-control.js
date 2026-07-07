@@ -178,31 +178,46 @@ async function sincronizarHistorialConAuth0(historialOriginal) {
 }
 
 // =========================================================================
-// SATELLITE: RECUPERAR EL HISTORIAL DE CONSULTAS DESDE LA BASE DE DATOS DE AUTH0
+// FUNCIÓN IMPORTADORA: LEER E IMPORTAR EL METADATA DESDE LA BASE DE DATOS
 // =========================================================================
 async function obtenerHistorialDeAuth0() {
   try {
     if (!auth0Client) return [];
-    
-    // Validar si el usuario está autenticado en esta sesión antes de pedir datos
     const isAuthenticated = await auth0Client.isAuthenticated();
     if (!isAuthenticated) return [];
 
+    // 1. Obtener el token de acceso y los datos del usuario activo
+    const token = await auth0Client.getTokenSilently();
     const user = await auth0Client.getUser();
+
+    const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
+
+    // 2. LLAMADA DE IMPORTACIÓN: Petición GET directa para traer el perfil completo con su user_metadata
+    const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!respuesta.ok) throw new Error("No se pudo importar el metadata desde Auth0.");
     
-    // Si el usuario tiene consultas previas en su metadata, las retornamos
-    if (user && user.user_metadata && user.user_metadata.consultas) {
-      console.log("> Historial recuperado con éxito desde la base de datos de Auth0.");
-      return user.user_metadata.consultas;
+    // 3. Parsear el perfil completo que nos devuelve la base de datos
+    const perfilCompleto = await respuesta.json();
+    
+    // 4. Extraer el array de consultas e importarlo al sistema
+    if (perfilCompleto && perfilCompleto.user_metadata && perfilCompleto.user_metadata.consultas) {
+      console.log("> Historial importado con éxito desde la base de datos de Auth0.");
+      return perfilCompleto.user_metadata.consultas; // Retorna las filas al app.js
     }
     
-    return []; // Retorna vacío si es un usuario nuevo sin historial
+    return [];
   } catch (error) {
-    console.error("Error al recuperar el historial de Auth0:", error);
+    console.error("Error al importar el historial de Auth0:", error);
     return [];
   }
 }
-
 
 // =========================================================================
 // GUARDAR HISTORIAL PERSISTENTE EN LA NUBE DE AUTH0
