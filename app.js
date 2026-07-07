@@ -349,13 +349,32 @@ function descargarDatosCSVActual() {
   document.body.removeChild(link);
 }
 
+
+// =========================================================================
+// FUNCIÓN MODIFICADA: ALMACENA LA URL COMPLETA EN LA COLUMNA DE SERVICIOS
+// =========================================================================
 function guardarConsultaEnHistorial() {
   if (!consultaActualTemporal) return;
+
+  // 1. Capturar o actualizar la fecha seleccionada por el usuario
   consultaActualTemporal.fechaDetectada = document.getElementById('fechaDetectadaInput').value || consultaActualTemporal.fechaDetectada;
+
+  // 2. CONSTRUCCIÓN DE LA URL COMPLETA Y VERDADERA DEL SERVICIO WMS solicitado
+  // Concatenamos tu urlServidorWms con los parámetros reales de la petición Leaflet
+  var urlCompletaWMS = `${urlServidorWms}?service=WMS&version=1.1.0&request=GetMap&layers=${espacioTrabajoReal}:${consultaActualTemporal.servicio}&styles=${estiloAsignado}&format=image/png&transparent=true`;
+  
+  // Reemplazamos el valor parcial por la URL absoluta e idéntica que procesa el GeoServer
+  consultaActualTemporal.servicio = urlCompletaWMS;
+
+  // 3. Insertar el objeto en tu array de sesión tradicional
   historialConsultas.push(consultaActualTemporal);
+
+  // 4. Limpieza de las referencias temporales y desactivación del botón
   capaPrevisualizacionTemporal = null;
   consultaActualTemporal = null;
   document.getElementById('btnGuardarConsulta').disabled = true;
+
+  // 5. Renderizar la tabla con las columnas idénticas y actualizar la leyenda
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
