@@ -13,14 +13,30 @@
 </head>
 <body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
 
-<header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
-    <nav class="flex h-full items-center gap-8 text-xs tracking-tight text-slate-400">
+<header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
+    <div class="w-1/4 invisible lg:block"></div>
+
+    <nav class="flex h-full items-center gap-6 text-xs tracking-tight text-slate-400">
       <a href="index.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-house mr-1.5"></i> Inicio</a>
       <a href="area_estudio.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-map-location-dot mr-1.5"></i> Área de Estudio</a>
       <a href="eventos_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-chart-line mr-1.5"></i> Análisis de Eventos</a>
-      <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>
-      <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-blue-500 text-blue-400 font-bold transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
+      <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>  
+      <a href="pronostico.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-cloud-sun mr-1.5"></i> Pronóstico</a>      
+      <a id="nav-areas-inundacion" href="areas_inundacion.html" class="hidden h-full flex items-center px-1 border-b-2 border-transparent text-amber-400 hover:text-amber-300 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
     </nav>
+
+    <div class="w-1/4 flex items-center justify-end gap-3">
+        <button id="btn-login" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-[11px] font-bold text-white transition-all flex items-center gap-1.5 border-0 cursor-pointer shadow-md">
+            <i class="fas fa-sign-in-alt text-[10px]"></i> Ingresar
+        </button>
+
+        <div id="user-profile" class="hidden flex items-center gap-3">
+            <span id="user-name" class="text-[11px] text-slate-300 font-semibold max-w-[120px] truncate"></span>
+            <button id="btn-logout" class="px-2.5 py-1.5 bg-slate-800 hover:bg-red-600 rounded-lg text-[11px] font-bold text-white transition-all flex items-center gap-1.5 border-0 cursor-pointer shadow-md">
+                <i class="fas fa-sign-out-alt text-[10px]"></i> Salir
+            </button>
+        </div>
+    </div>
   </header>
 
   <div class="flex-1 px-4 pb-2 grid grid-cols-12 gap-4 overflow-hidden">
