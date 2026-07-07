@@ -384,9 +384,25 @@ function guardarConsultaEnHistorial() {
   actualizarLeyendaDinamica();
 }
 
-function actualizarRenderTablaHistorial() {
+
+async function actualizarRenderTablaHistorial() {
   var tbody = document.getElementById('historialContenido');
   tbody.innerHTML = "";
+
+  // =========================================================================
+  // CONEXIÓN CRUCIAL DE ARRANQUE: Descarga el JSON de Auth0 e inyéctalo
+  // =========================================================================
+  if (typeof obtenerHistorialDeAuth0 === "function" && historialConsultas.length === 0) {
+    try {
+      var jsonDescargado = await obtenerHistorialDeAuth0();
+      if (jsonDescargado && jsonDescargado.length > 0) {
+        // Estampamos el JSON directamente sobre el array que recorre esta función
+        historialConsultas = jsonDescargado;
+      }
+    } catch (e) {
+      console.error("Error al inyectar el JSON de Auth0 en la tabla:", e);
+    }
+  }
 
   if (historialConsultas.length === 0) {
     tbody.innerHTML = `<tr id="historialVacio"><td colspan="6" class="text-center text-slate-400 py-6 italic text-xs">Ninguna consulta guardada en esta sesión.</td></tr>`;
@@ -416,9 +432,9 @@ function removerConsultaHistorial(index) {
   var item = historialConsultas[index];
   if(item) { map.removeLayer(item.instanciaCapa); }
   historialConsultas.splice(index, 1);
-  
+
   // =========================================================================
-  // CONEXIÓN DE ELIMINACIÓN: Sincroniza el array recortado con la nube
+  // CONEXIÓN EN CALIENTE AL ELIMINAR: Actualiza Auth0 con el array recortado
   // =========================================================================
   if (typeof sincronizarHistorialConAuth0 === "function") {
     sincronizarHistorialConAuth0(historialConsultas);

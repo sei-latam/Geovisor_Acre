@@ -69,8 +69,13 @@ if (isAuthenticated) {
     
     // Muestra el módulo de áreas de inundación si el usuario inició sesión
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
-    
-    // ELIMINADO EL LLAMADO DESDE AQUÍ PARA EVITAR CONFLICTO DE TIEMPOS
+
+    // =========================================================================
+    // LA CONEXIÓN DEFINITIVA: Despierta el renderizador nativo de app.js
+    // =========================================================================
+    if (typeof actualizarRenderTablaHistorial === "function") {
+      actualizarRenderTablaHistorial();
+    }
   }
    else {
     if (btnLogin) btnLogin.classList.remove("hidden");
@@ -130,26 +135,20 @@ if (document.readyState === "loading") {
   inicializarAutenticacion();
 }
 
-// =========================================================================
-// SATELLITE: GUARDAR EL HISTORIAL DE CONSULTAS EN LA BASE DE DATOS DE AUTH0
-// =========================================================================
+
 async function sincronizarHistorialConAuth0(historialOriginal) {
   try {
     if (!auth0Client) return;
-
-    // 1. Obtener tokens de la sesión activa de forma segura
     const token = await auth0Client.getTokenSilently();
     const user = await auth0Client.getUser();
 
-    // 2. Extraer de forma estricta las 4 columnas de texto requeridas
     const datosParaGuardar = historialOriginal.map(item => ({
       plan: item.plan,
       depth: item.depth,
       fechaDetectada: item.fechaDetectada,
-      servicio: item.servicio // Aquí viaja la URL completa calculada
+      servicio: item.servicio 
     }));
 
-    // 3. Enviar la petición PATCH para actualizar el user_metadata del usuario ingresado
     const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
     const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
       method: "PATCH",
@@ -158,17 +157,44 @@ async function sincronizarHistorialConAuth0(historialOriginal) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        user_metadata: {
-          consultas: datosParaGuardar
-        }
+        user_metadata: { consultas: datosParaGuardar }
       })
     });
-
-    if (!respuesta.ok) throw new Error("La base de datos de Auth0 rechazó el almacenamiento.");
-    console.log("> Historial guardado con éxito en la cuenta de Auth0.");
-
+    if (!respuesta.ok) throw new Error("Rechazado por Auth0.");
   } catch (error) {
-    console.error("Error al persistir el historial en Auth0:", error);
+    console.error("Error al persistir en Auth0:", error);
+  }
+}
+
+async function obtenerHistorialDeAuth0() {
+  try {
+    if (!auth0Client) return [];
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (!isAuthenticated) return [];
+
+    const token = await auth0Client.getTokenSilently();
+    const user = await auth0Client.getUser();
+    const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
+
+    // Petición directa a la API v2 para descargar el user_metadata real
+    const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    if (!respuesta.ok) return [];
+    const perfilCompleto = await respuesta.json();
+    
+    if (perfilCompleto && perfilCompleto.user_metadata && perfilCompleto.user_metadata.consultas) {
+      return perfilCompleto.user_metadata.consultas;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error de red al traer el JSON:", error);
+    return [];
   }
 }
 
