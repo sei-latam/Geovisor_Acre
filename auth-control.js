@@ -4,17 +4,19 @@ let auth0Client = null;
 // Captura dinámicamente la URL exacta del navegador (ej: https://sei-latam.github.io/Geovisor_Acre/pronostico.html)
 const urlActualAbsoluta = window.location.origin + window.location.pathname;
 
+// ID REAL CORREGIDO LETRA POR LETRA: rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p
+const CLIENT_ID_EXACTO = "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p";
+
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
-  clientId: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p", // Corregido a camelCase para evitar el error 'Missing client_id'
+  clientId: CLIENT_ID_EXACTO, 
   
-  // Mantiene la sesión viva al cambiar entre los archivos HTML
+  // Mantiene la sesión viva al cambiar entre los archivos HTML leyendo el LocalStorage
   cacheLocation: 'localstorage', 
   useRefreshTokens: true,        
   
   authorizationParams: {
-    // Se duplica aquí por seguridad interna del protocolo OIDC
-    client_id: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p", 
+    client_id: CLIENT_ID_EXACTO, 
     // Hace que Auth0 te devuelva exactamente al módulo donde iniciaste el flujo
     redirect_uri: urlActualAbsoluta
   }
