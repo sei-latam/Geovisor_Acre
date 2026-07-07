@@ -1,7 +1,7 @@
 // auth-control.js - Controlador Central de Acceso para GitHub Pages
 let auth0Client = null;
 
-// Configuración validada con tus credenciales reales
+// Configuración oficial validada con tus credenciales reales
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
   client_id: "rnCosAyQvCRFhDRPTTBbDvJEZb4Rp1p",
@@ -36,6 +36,8 @@ async function inicializarAutenticacion() {
 
   } catch (error) {
     console.error("Error crítico en el núcleo de Auth0:", error);
+    // Forzamos el renderizado público de la interfaz si el chequeo inicial falla por red
+    actualizarInterfazYAcceso(false);
   }
 }
 
@@ -67,11 +69,21 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     }
   }
 
-  // Configuración del botón de Ingreso
+  // Configuración blindada del botón de Ingreso
   if (btnLogin) {
     btnLogin.onclick = async (e) => {
       e.preventDefault();
-      await auth0Client.loginWithRedirect();
+      try {
+        if (auth0Client) {
+          await auth0Client.loginWithRedirect();
+        } else {
+          console.warn("auth0Client no inicializado al hacer click. Reintentando instanciar...");
+          auth0Client = new auth0.Auth0Client(auth0Config);
+          await auth0Client.loginWithRedirect();
+        }
+      } catch (err) {
+        console.error("Error directo al intentar redirigir con loginWithRedirect:", err);
+      }
     };
   }
 
@@ -80,10 +92,14 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
   if (btnLogout) {
     btnLogout.onclick = (e) => {
       e.preventDefault();
-      const urlRetorno = window.location.origin + window.location.pathname.replace(paginaActual, "index.html");
-      auth0Client.logout({ 
-        logoutParams: { returnTo: urlRetorno } 
-      });
+      try {
+        const urlRetorno = window.location.origin + window.location.pathname.replace(paginaActual, "index.html");
+        auth0Client.logout({ 
+          logoutParams: { returnTo: urlRetorno } 
+        });
+      } catch (err) {
+        console.error("Error al intentar cerrar sesión:", err);
+      }
     };
   }
 }
