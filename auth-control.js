@@ -1,23 +1,22 @@
 // auth-control.js - Controlador Central de Acceso para GitHub Pages
 let auth0Client = null;
 
-// CONFIGURACIÓN OFICIAL: Mapeada estrictamente con las URLs validadas
 const auth0Config = {
   domain: "dev-v5pan6cu4bzobv4v.us.auth0.com",
-  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", // ID Real verificado letra por letra
-  
-  // ==========================================
-  // SOLO AGREGAMOS ESTO PARA PASAR ENTRE MÓDULOS SINO SE COPIA NADA MÁS
+  clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p", 
   cacheLocation: 'localstorage', 
   useRefreshTokens: true,        
-  // ==========================================
   
   authorizationParams: {
     client_id: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
     clientId: "rnCosAyQvCRFhDRPTTBbBdVJEZb4Rp1p",
+    redirect_uri: "https://sei-latam.github.io/Geovisor_Acre/",
+    audience: "https://dev-v5pan6cu4bzobv4v.us.auth0.com/api/v2/",
     
-    // FIJO Y ESTRICTO: Copia exacta de la URL que requiere el servidor de Auth0
-    redirect_uri: "https://sei-latam.github.io/Geovisor_Acre/"
+    // =========================================================================
+    // MODIFICACIÓN FINAL: Otorga los permisos necesarios al token del Frontend
+    // =========================================================================
+    scope: "openid profile email update:current_user_metadata read:current_user"
   }
 };
 
@@ -69,6 +68,14 @@ async function actualizarInterfazYAcceso(isAuthenticated) {
     
     // Muestra el módulo de áreas de inundación si el usuario inició sesión
     if (navAreasInundacion) navAreasInundacion.classList.remove("hidden");
+
+    // =========================================================================
+    // MODIFICACIÓN PASO A PASO: Inyectar la carga del historial al validar sesión
+    // =========================================================================
+    if (typeof cargarHistorialPersistente === "function") {
+      cargarHistorialPersistente();
+    }
+    
   } else {
     if (btnLogin) btnLogin.classList.remove("hidden");
     if (userProfile) userProfile.classList.add("hidden");
@@ -125,4 +132,126 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", inicializarAutenticacion);
 } else {
   inicializarAutenticacion();
+}
+
+// =========================================================================
+// SATELLITE: GUARDAR EL HISTORIAL DE CONSULTAS EN LA BASE DE DATOS DE AUTH0
+// =========================================================================
+async function sincronizarHistorialConAuth0(historialOriginal) {
+  try {
+    if (!auth0Client) return;
+
+    // 1. Obtener tokens de la sesión activa de forma segura
+    const token = await auth0Client.getTokenSilently();
+    const user = await auth0Client.getUser();
+
+    // 2. Extraer de forma estricta las 4 columnas de texto requeridas
+    const datosParaGuardar = historialOriginal.map(item => ({
+      plan: item.plan,
+      depth: item.depth,
+      fechaDetectada: item.fechaDetectada,
+      servicio: item.servicio // Aquí viaja la URL completa calculada
+    }));
+
+    // 3. Enviar la petición PATCH para actualizar el user_metadata del usuario ingresado
+    const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
+    const respuesta = await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        user_metadata: {
+          consultas: datosParaGuardar
+        }
+      })
+    });
+
+    if (!respuesta.ok) throw new Error("La base de datos de Auth0 rechazó el almacenamiento.");
+    console.log("> Historial guardado con éxito en la cuenta de Auth0.");
+
+  } catch (error) {
+    console.error("Error al persistir el historial en Auth0:", error);
+  }
+}
+
+// =========================================================================
+// SATELLITE: RECUPERAR EL HISTORIAL DE CONSULTAS DESDE LA BASE DE DATOS DE AUTH0
+// =========================================================================
+async function obtenerHistorialDeAuth0() {
+  try {
+    if (!auth0Client) return [];
+    
+    // Validar si el usuario está autenticado en esta sesión antes de pedir datos
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (!isAuthenticated) return [];
+
+    const user = await auth0Client.getUser();
+    
+    // Si el usuario tiene consultas previas en su metadata, las retornamos
+    if (user && user.user_metadata && user.user_metadata.consultas) {
+      console.log("> Historial recuperado con éxito desde la base de datos de Auth0.");
+      return user.user_metadata.consultas;
+    }
+    
+    return []; // Retorna vacío si es un usuario nuevo sin historial
+  } catch (error) {
+    console.error("Error al recuperar el historial de Auth0:", error);
+    return [];
+  }
+}
+
+
+// =========================================================================
+// GUARDAR HISTORIAL PERSISTENTE EN LA NUBE DE AUTH0
+// =========================================================================
+async function sincronizarHistorialConAuth0(historialOriginal) {
+  try {
+    if (!auth0Client) return;
+    const token = await auth0Client.getTokenSilently();
+    const user = await auth0Client.getUser();
+
+    // Filtramos para enviar solo texto puro de las 4 columnas requeridas
+    const datosParaGuardar = historialOriginal.map(item => ({
+      plan: item.plan,
+      depth: item.depth,
+      fechaDetectada: item.fechaDetectada,
+      servicio: item.servicio 
+    }));
+
+    const domain = "dev-v5pan6cu4bzobv4v.us.auth0.com";
+    await fetch(`https://${domain}/api/v2/users/${user.sub}`, {
+      method: "PATCH",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user_metadata: { consultas: datosParaGuardar } })
+    });
+    console.log("> Historial almacenado con éxito en Auth0.");
+  } catch (error) {
+    console.error("Error al persistir en Auth0:", error);
+  }
+}
+
+// =========================================================================
+// RECUPERAR HISTORIAL DESDE LA NUBE DE AUTH0
+// =========================================================================
+async function obtenerHistorialDeAuth0() {
+  try {
+    if (!auth0Client) return [];
+    const isAuthenticated = await auth0Client.isAuthenticated();
+    if (!isAuthenticated) return [];
+    const user = await auth0Client.getUser();
+    
+    if (user && user.user_metadata && user.user_metadata.consultas) {
+      console.log("> Historial recuperado con éxito desde Auth0.");
+      return user.user_metadata.consultas;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error al recuperar el historial de Auth0:", error);
+    return [];
+  }
 }

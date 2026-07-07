@@ -349,7 +349,6 @@ function descargarDatosCSVActual() {
   document.body.removeChild(link);
 }
 
-
 // =========================================================================
 // FUNCIÓN MODIFICADA: ALMACENA LA URL COMPLETA EN LA COLUMNA DE SERVICIOS
 // =========================================================================
@@ -360,7 +359,6 @@ function guardarConsultaEnHistorial() {
   consultaActualTemporal.fechaDetectada = document.getElementById('fechaDetectadaInput').value || consultaActualTemporal.fechaDetectada;
 
   // 2. CONSTRUCCIÓN DE LA URL COMPLETA Y VERDADERA DEL SERVICIO WMS solicitado
-  // Concatenamos tu urlServidorWms con los parámetros reales de la petición Leaflet
   var urlCompletaWMS = `${urlServidorWms}?service=WMS&version=1.1.0&request=GetMap&layers=${espacioTrabajoReal}:${consultaActualTemporal.servicio}&styles=${estiloAsignado}&format=image/png&transparent=true`;
   
   // Reemplazamos el valor parcial por la URL absoluta e idéntica que procesa el GeoServer
@@ -368,6 +366,13 @@ function guardarConsultaEnHistorial() {
 
   // 3. Insertar el objeto en tu array de sesión tradicional
   historialConsultas.push(consultaActualTemporal);
+
+  // =========================================================================
+  // ENLACE CON AUTH0: Guardamos en caliente el historial actualizado en la nube
+  // =========================================================================
+  if (typeof sincronizarHistorialConAuth0 === "function") {
+    sincronizarHistorialConAuth0(historialConsultas);
+  }
 
   // 4. Limpieza de las referencias temporales y desactivación del botón
   capaPrevisualizacionTemporal = null;
@@ -378,6 +383,7 @@ function guardarConsultaEnHistorial() {
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
+
 
 function actualizarRenderTablaHistorial() {
   var tbody = document.getElementById('historialContenido');
@@ -652,4 +658,20 @@ function descargarDatosCSVActual() {
   document.body.appendChild(linkDescarga);
   linkDescarga.click();
   document.body.removeChild(linkDescarga);
+}
+
+
+// =========================================================================
+// NUEVA FUNCIÓN: LEER HISTORIAL PERMANENTE E INYECTARLO EN TU TABLA
+// =========================================================================
+async function cargarHistorialPersistente() {
+  if (typeof obtenerHistorialDeAuth0 === "function") {
+    var historialGuardado = await obtenerHistorialDeAuth0();
+    if (historialGuardado && historialGuardado.length > 0) {
+      // Reemplazamos tu array global por los datos recuperados de Auth0
+      historialConsultas = historialGuardado;
+      // Invocamos tu función nativa (la que me acabas de mostrar) para dibujar la tabla
+      actualizarRenderTablaHistorial();
+    }
+  }
 }
