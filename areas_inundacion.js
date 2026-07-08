@@ -183,15 +183,12 @@ async function descargarYProcesarCSV(planSeleccionado) {
   try {
     var respuesta = await fetch(urlCompleta);
     if (!respuesta.ok) throw new Error("Error en conexión de red");
-    
     var textoPlano = await respuesta.text();
     var lineas = textoPlano.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-    
     var encabezados = lineas[0].split(",");
     let idxStep = encabezados.findIndex(h => h.toLowerCase().includes('step') || h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('_0'));
     let idxDate = encabezados.findIndex(h => h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
     let idxDepth = encabezados.findIndex(h => h.toLowerCase().includes('wsel') || h.toLowerCase().includes('depth') || h.toLowerCase().includes('valor'));
-
     if (idxStep === -1) idxStep = 0;
     if (idxDate === -1) idxDate = 1;
     if (idxDepth === -1) idxDepth = 2;
@@ -222,7 +219,6 @@ async function procesarConsultaAutomatica() {
   var depthValor = parseFloat(document.getElementById('depthInput').value);
   var planSeleccionado = document.getElementById('planSelect').value;
   if (!planSeleccionado || isNaN(depthValor)) return;
-
   var meta = dbExcelPlanes[planSeleccionado];
 
   if (depthValor < meta.min || depthValor > meta.max) {
@@ -232,7 +228,6 @@ async function procesarConsultaAutomatica() {
 
   document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-amber-500 text-white px-2 py-1 rounded uppercase tracking-wider animate-pulse";
   document.getElementById('badgeEstado').innerText = "Descargando...";
-
   var datosPlanActual = await descargarYProcesarCSV(planSeleccionado);
   
   if (!datosPlanActual || datosPlanActual.length === 0) {
@@ -246,15 +241,12 @@ async function procesarConsultaAutomatica() {
 
   var puntoMasCercano = datosPlanActual.reduce((prev, curr) => Math.abs(curr.depth - depthValor) < Math.abs(prev.depth - depthValor) ? curr : prev);
 
-  document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
-  
+  document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;  
   miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
   miChart.data.datasets[0].data = datosPlanActual.map(p => p.depth);
   miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
   miChart.data.datasets[0].pointBackgroundColor = datosPlanActual.map(p => p.step === puntoMasCercano.step ? '#ef4444' : '#2563eb');
-
   miChart.update();
-
   document.getElementById('btnDescargarCSV').disabled = false;
 
   var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
@@ -584,6 +576,63 @@ function descargarDatosCSVActual() {
   var linkDescarga = document.createElement("a");  
   linkDescarga.href = URL.createObjectURL(blob);
   linkDescarga.setAttribute("download", `Datos_Originales_${planSeleccionado.toUpperCase()}.csv`);
+  document.body.appendChild(linkDescarga);
+  linkDescarga.click();
+  document.body.removeChild(linkDescarga);
+}
+
+function agregarConsultaAlHistorial(nombrePlan, valorProfundidad, timestampFecha, identificadorCapa) {
+  var urlServicioCapa = construirUrlGetMapServicio(identificadorCapa);
+  
+  var nuevaCapaWMS = L.tileLayer.wms(urlServidorWms, {
+    layers: identificadorCapa,
+    format: 'image/png',
+    transparent: true,
+    styles: 'estilo_inundacion',
+    version: '1.1.1'
+  });
+
+  nuevaCapaWMS.addTo(map);
+  var nuevaConsulta = {
+    plan: nombrePlan.toUpperCase(),
+    depth: parseFloat(valorProfundidad).toFixed(2),
+    fechaDetectada: timestampFecha,
+    servicio: urlServicioCapa,
+    nombreCapaInterno: identificadorCapa, // Guardamos este para que el módulo de pronóstico sepa qué capa encender
+    instanciaCapa: nuevaCapaWMS
+  };
+
+  historialConsultas.push(nuevaConsulta);
+  actualizarRenderTablaHistorial();
+  actualizarLeyendaDinamica();
+  
+  if (typeof logToConsole === "function") {
+    logToConsole(`Capa WMS acoplada: ${identificadorCapa}`);
+  }
+}
+
+function exportarHistorialConsultasJSON() {
+  if (historialConsultas.length === 0) {
+    alert("No hay ninguna consulta en la tabla para exportar. Realice análisis primero.");
+    return;
+  }
+
+  var datosJSON = historialConsultas.map(function(item) {
+    return {
+      plan: item.plan,
+      depth: item.depth,
+      fechaDetectada: item.fechaDetectada,
+      servicio: item.servicio,
+      nombreCapaInterno: item.nombreCapaInterno
+    };
+  });
+
+
+  var cadenaJSON = JSON.stringify(datosJSON, null, 2);
+  var blob = new Blob([cadenaJSON], { type: 'application/json;charset=utf-8;' });
+  var linkDescarga = document.createElement("a");
+  linkDescarga.href = URL.createObjectURL(blob);
+  linkDescarga.setAttribute("download", "consultas.json");
   document.body.appendChild(linkDescarga);
   linkDescarga.click();
   document.body.removeChild(linkDescarga);
