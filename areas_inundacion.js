@@ -1,4 +1,3 @@
-// Rampa de colores idéntica al ColorMap del estilo SLD "estilo_inundacion" en GeoServer
 var rampaColoresInundacion = [
   { limite: 0,  color: "#ffffff", etiqueta: "0 metros" },
   { limite: 2,  color: "#a6bddb", etiqueta: "2 metros" },
@@ -7,7 +6,6 @@ var rampaColoresInundacion = [
   { limite: 17, color: "#4a1486", etiqueta: "17 metros" }
 ];
 
-// Devuelve el color de la rampa correspondiente a una profundidad (depth) dada
 function obtenerColorPorProfundidad(valorDepth) {
   var valor = parseFloat(valorDepth);
   if (isNaN(valor)) return rampaColoresInundacion[0].color;
@@ -21,7 +19,6 @@ function obtenerColorPorProfundidad(valorDepth) {
   return colorSeleccionado;
 }
 
-// Pinta el bloque fijo de la rampa de colores (Seco -> Extrema) dentro del panel de leyenda
 function renderizarRampaLeyenda() {
   var contenedorRampa = document.getElementById('leyendaRampaContenedor');
   if (!contenedorRampa) return;
@@ -82,7 +79,7 @@ var estiloAsignado = "estilo_inundacion";
 
 var capaPrevisualizacionTemporal = null; 
 var consultaActualTemporal = null;       
-var historialConsultas = [];
+var historialConsultas = [];  
 
 const urlBaseGitHub = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/refs/heads/main/charts/";
 
@@ -151,7 +148,6 @@ function toggleWidget(idPanel) {
   document.getElementById(idPanel).classList.toggle('hidden');
 }
 
-// Almacenamiento temporal para no volver a descargar datos ya consultados
 var cacheDatosCSV = {};
 var miChart;
 
@@ -177,9 +173,6 @@ function validarIngresoDepth() {
   }
 }
 
-// =========================================================================
-// LECTOR ASÍNCRONO AUTOMÁTICO DE ARCHIVOS CSV DE GITHUB
-// =========================================================================
 async function descargarYProcesarCSV(planSeleccionado) {
   if (cacheDatosCSV[planSeleccionado]) {
     return cacheDatosCSV[planSeleccionado];
@@ -194,13 +187,11 @@ async function descargarYProcesarCSV(planSeleccionado) {
     var textoPlano = await respuesta.text();
     var lineas = textoPlano.split("\n").map(l => l.trim()).filter(l => l.length > 0);
     
-    // Detectamos encabezados
     var encabezados = lineas[0].split(",");
     let idxStep = encabezados.findIndex(h => h.toLowerCase().includes('step') || h.toLowerCase().includes('tiempo') || h.toLowerCase().includes('_0'));
     let idxDate = encabezados.findIndex(h => h.toLowerCase().includes('date') || h.toLowerCase().includes('fecha'));
     let idxDepth = encabezados.findIndex(h => h.toLowerCase().includes('wsel') || h.toLowerCase().includes('depth') || h.toLowerCase().includes('valor'));
 
-    // Si no encuentra los indices por nombre, asignamos por posición por defecto (0, 1, 2)
     if (idxStep === -1) idxStep = 0;
     if (idxDate === -1) idxDate = 1;
     if (idxDepth === -1) idxDepth = 2;
@@ -227,9 +218,6 @@ async function descargarYProcesarCSV(planSeleccionado) {
   }
 }
 
-// =========================================================================
-// PROCESAMIENTO PRINCIPAL MODIFICADO (AHORA ASÍNCRONO REAL)
-// =========================================================================
 async function procesarConsultaAutomatica() {
   var depthValor = parseFloat(document.getElementById('depthInput').value);
   var planSeleccionado = document.getElementById('planSelect').value;
@@ -256,12 +244,10 @@ async function procesarConsultaAutomatica() {
   document.getElementById('badgeEstado').className = "text-[9px] font-bold bg-green-500 text-white px-2 py-1 rounded uppercase tracking-wider";
   document.getElementById('badgeEstado').innerText = "Procesado";
 
-  // Buscar el paso más cercano al valor digitado
   var puntoMasCercano = datosPlanActual.reduce((prev, curr) => Math.abs(curr.depth - depthValor) < Math.abs(prev.depth - depthValor) ? curr : prev);
 
   document.getElementById('fechaDetectadaInput').value = puntoMasCercano.date;
   
-  // Graficar la serie temporal completa obtenida del CSV genuino
   miChart.data.labels = datosPlanActual.map(p => `Paso ${p.step}`);
   miChart.data.datasets[0].data = datosPlanActual.map(p => p.depth);
   miChart.data.datasets[0].pointRadius = datosPlanActual.map(p => p.step === puntoMasCercano.step ? 6 : 0);
@@ -271,10 +257,8 @@ async function procesarConsultaAutomatica() {
 
   document.getElementById('btnDescargarCSV').disabled = false;
 
-  // CONSTRUCCIÓN FORMAL DEL STRING DE CAPA REAL: Depth_XX_DDMMMYYYY_HH_MM_SS_TRXX
   var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
   
-  // Formato real que entrega el CSV: "19APR2026 13:30:00" (DDMMMAAAA HH:MM:SS, sin guiones)
   var partesFecha = puntoMasCercano.date.trim().split(" "); // ["19APR2026", "13:30:00"]
   var fechaBruta = partesFecha[0] || "";                    // "19APR2026"
   var horaBruta = partesFecha[1] || "00:00:00";              // "13:30:00"
@@ -288,7 +272,6 @@ async function procesarConsultaAutomatica() {
   var minuto = (horaMinutoSegundo[1] || "00").padStart(2, '0');
   var segundo = (horaMinutoSegundo[2] || "00").padStart(2, '0');
 
-  // Ensamblamos la cadena de tiempo idéntica al almacén de GeoServer
   var cadenaFechaFinal = `${dia}${mes}${anio}_${hora}_${minuto}_${segundo}`;
   var sufijoTR = dbExcelPlanes[planSeleccionado].capaSuffix; // Obtiene TR02, TR10, etc.
   
@@ -296,18 +279,16 @@ async function procesarConsultaAutomatica() {
 
   if (capaPrevisualizacionTemporal) { map.removeLayer(capaPrevisualizacionTemporal); }
 
-  // INYECCIÓN CON VERSIONAMIENTO CORRECTO AL GEOSERVER DE PRODUCCIÓN
   capaPrevisualizacionTemporal = L.tileLayer.wms(urlServidorWms, {
     layers: `${espacioTrabajoReal}:${nombreCapaGeoTIFF}`,
     format: 'image/png', 
     transparent: true, 
-    version: '1.1.0', // Ajustado a la versión nativa de tu enlace de prueba
+    version: '1.1.0',
     styles: estiloAsignado
   }).addTo(map);
 
   document.getElementById('logConsole').innerHTML = `<span class="text-green-400">> Previsualizando:</span> <span class="text-white">${espacioTrabajoReal}:${nombreCapaGeoTIFF}</span>`;
 
-  // Guardamos en el objeto temporal usando el nuevo nombre estándar
   consultaActualTemporal = {
     plan: planSeleccionado.toUpperCase(),
     depth: depthValor.toFixed(2),
@@ -322,10 +303,6 @@ async function procesarConsultaAutomatica() {
 }
 
 
-// =========================================================================
-// FUNCIÓN PARA DESCARGAR LOS DATOS ACTIVOS DIRECTAMENTE AL PC
-// =========================================================================
-// Agrega un botón en tu HTML que llame a esta función: onclick="descargarDatosCSVActual()"
 function descargarDatosCSVActual() {
   var planSeleccionado = document.getElementById('planSelect').value;
   if (!planSeleccionado || !cacheDatosCSV[planSeleccionado]) {
@@ -349,60 +326,20 @@ function descargarDatosCSVActual() {
   document.body.removeChild(link);
 }
 
-// =========================================================================
-// FUNCIÓN MODIFICADA: ALMACENA LA URL COMPLETA EN LA COLUMNA DE SERVICIOS
-// =========================================================================
 function guardarConsultaEnHistorial() {
   if (!consultaActualTemporal) return;
-
-  // 1. Capturar o actualizar la fecha seleccionada por el usuario
   consultaActualTemporal.fechaDetectada = document.getElementById('fechaDetectadaInput').value || consultaActualTemporal.fechaDetectada;
-
-  // 2. CONSTRUCCIÓN DE LA URL COMPLETA Y VERDADERA DEL SERVICIO WMS solicitado
-  var urlCompletaWMS = `${urlServidorWms}?service=WMS&version=1.1.0&request=GetMap&layers=${espacioTrabajoReal}:${consultaActualTemporal.servicio}&styles=${estiloAsignado}&format=image/png&transparent=true`;
-  
-  // Reemplazamos el valor parcial por la URL absoluta e idéntica que procesa el GeoServer
-  consultaActualTemporal.servicio = urlCompletaWMS;
-
-  // 3. Insertar el objeto en tu array de sesión tradicional
   historialConsultas.push(consultaActualTemporal);
-
-  // =========================================================================
-  // ENLACE CON AUTH0: Guardamos en caliente el historial actualizado en la nube
-  // =========================================================================
-  if (typeof sincronizarHistorialConAuth0 === "function") {
-    sincronizarHistorialConAuth0(historialConsultas);
-  }
-
-  // 4. Limpieza de las referencias temporales y desactivación del botón
   capaPrevisualizacionTemporal = null;
   consultaActualTemporal = null;
   document.getElementById('btnGuardarConsulta').disabled = true;
-
-  // 5. Renderizar la tabla con las columnas idénticas y actualizar la leyenda
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
 
-
-async function actualizarRenderTablaHistorial() {
+function actualizarRenderTablaHistorial() {
   var tbody = document.getElementById('historialContenido');
   tbody.innerHTML = "";
-
-  // =========================================================================
-  // CONEXIÓN DIRECTA DE ARRANQUE: Baja el JSON de Auth0 si el array local está vacío
-  // =========================================================================
-  if (typeof obtenerHistorialDeAuth0 === "function" && historialConsultas.length === 0) {
-    try {
-      var jsonDescargado = await obtenerHistorialDeAuth0();
-      if (jsonDescargado && jsonDescargado.length > 0) {
-        // Clavamos el JSON descargado directamente en tu array global
-        historialConsultas = jsonDescargado;
-      }
-    } catch (error) {
-      console.error("Error al importar el historial desde la API de Auth0:", error);
-    }
-  }
 
   if (historialConsultas.length === 0) {
     tbody.innerHTML = `<tr id="historialVacio"><td colspan="6" class="text-center text-slate-400 py-6 italic text-xs">Ninguna consulta guardada en esta sesión.</td></tr>`;
@@ -412,14 +349,12 @@ async function actualizarRenderTablaHistorial() {
   historialConsultas.forEach((item, index) => {
     var fila = document.createElement('tr');
     fila.className = "hover:bg-slate-50 transition-colors border-b border-slate-100 text-slate-700 font-medium";
-    
-    // Mapeo estricto con las propiedades exactas de tu PDF ("plan", "depth", "fechaDetectada", "servicio")
     fila.innerHTML = `
       <td class="p-2 text-center font-bold text-slate-400">${index + 1}</td>
-      <td class="p-2 font-bold text-slate-800">${item.plan || ''}</td>
-      <td class="p-2 font-mono text-blue-600 font-semibold">${item.depth || 0} m</td>
-      <td class="p-2 text-slate-600 text-[11px] font-sans">${item.fechaDetectada ? item.fechaDetectada.replace('T', ' ') : ''}</td>
-      <td class="p-2 text-yellow-600 font-mono text-[10px] truncate max-w-[180px]" title="${item.servicio || ''}">${item.servicio || ''}</td>
+      <td class="p-2 font-bold text-slate-800">${item.plan}</td>
+      <td class="p-2 font-mono text-blue-600 font-semibold">${item.depth} m</td>
+      <td class="p-2 text-slate-600 text-[11px] font-sans">${item.fechaDetectada.replace('T', ' ')}</td>
+      <td class="p-2 text-yellow-600 font-mono text-[10px] truncate max-w-[180px]" title="${item.servicio}">${item.servicio}</td>
       <td class="p-2 text-center">
         <button onclick="removerConsultaHistorial(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 rounded p-1.5 transition-colors">
           <i class="fa-solid fa-trash-can text-xs"></i>
@@ -432,46 +367,11 @@ async function actualizarRenderTablaHistorial() {
 
 function removerConsultaHistorial(index) {
   var item = historialConsultas[index];
-  if(item && item.instanciaCapa && map) { map.removeLayer(item.instanciaCapa); }
-  
-  // Eliminar el elemento del array local
+  if(item) { map.removeLayer(item.instanciaCapa); }
   historialConsultas.splice(index, 1);
-  
-  // =========================================================================
-  // SINCRONIZACIÓN AL ELIMINAR: Sube el array recortado a Auth0 de inmediato
-  // =========================================================================
-  if (typeof sincronizarHistorialConAuth0 === "function") {
-    sincronizarHistorialConAuth0(historialConsultas);
-  }
-
   actualizarRenderTablaHistorial();
   actualizarLeyendaDinamica();
 }
-
-// =========================================================================
-// CONEXIÓN DE CARGA: Fuerza al mapa a descargar el JSON y meterlo a tu tabla
-// =========================================================================
-(async function conectorInyeccionForzada() {
-  // Esperar un momento a que la sesión de Auth0 se valide físicamente
-  await new Promise(resolve => setTimeout(resolve, 2500));
-  
-  if (typeof obtenerHistorialDeAuth0 === "function") {
-    try {
-      var jsonDescargado = await obtenerHistorialDeAuth0();
-      if (jsonDescargado && jsonDescargado.length > 0) {
-        // Machacar el array global que lee tu renderizador nativo
-        historialConsultas = jsonDescargado;
-        // Forzar a tu función a pintar las filas
-        actualizarRenderTablaHistorial();
-        console.log("> Conexión exitosa: Datos inyectados en la tabla.");
-      }
-    } catch (e) {
-      console.error("> Error al conectar el JSON con la tabla:", e);
-    }
-  }
-})();
-
-
 
 function actualizarLeyendaDinamica() {
   renderizarRampaLeyenda();
@@ -632,9 +532,6 @@ function activarHerramientaDibujo(tipo) {
 function calcularDistanciaRuta(puntos) { var dist = 0; for (var i = 0; i < puntos.length - 1; i++) { dist += puntos[i].distanceTo(puntos[i+1]); } return dist; }
 function limpiarDibujos() { capasDibujo.clearLayers(); desactivarModosMapa(); }
 
-
-
-
 var debounceTimer;
 function buscarSugerencias() {
   clearTimeout(debounceTimer); var query = document.getElementById('searchInput').value.trim();
@@ -675,14 +572,9 @@ function obtenerUbicacionActual() {
   map.locate({setView: true, maxZoom: 15});
 }
 
-
-// =========================================================================
-// FUNCIÓN PARA DESCARGAR EL ARCHIVO CSV COMPLETO DEL TR SELECCIONADO AL PC
-// =========================================================================
 function descargarDatosCSVActual() {
   var planSeleccionado = document.getElementById('planSelect').value;
   
-  // Verificamos que existan datos cargados en caché para este escenario
   if (!planSeleccionado || !cacheDatosCSV[planSeleccionado]) {
     alert("No hay datos disponibles en memoria para descargar en este momento.");
     return;
@@ -690,48 +582,19 @@ function descargarDatosCSVActual() {
 
   var datosOriginales = cacheDatosCSV[planSeleccionado];
   
-  // Construimos la cabecera estándar de tus archivos
   var contenidoCSV = "Step,Date/Time,Depth\n";
   
-  // Reconstruimos fila por fila en formato de texto CSV
   datosOriginales.forEach(function(fila) {
     contenidoCSV += `${fila.step},"${fila.date}",${fila.depth}\n`;
   });
 
-  // Generamos el objeto binario de tipo texto/csv
   var blob = new Blob([contenidoCSV], { type: 'text/csv;charset=utf-8;' });
   var linkDescarga = document.createElement("a");
   
-  // Generamos una URL temporal para forzar la descarga en el navegador con un nombre limpio
   linkDescarga.href = URL.createObjectURL(blob);
   linkDescarga.setAttribute("download", `Datos_Originales_${planSeleccionado.toUpperCase()}.csv`);
   
-  // Inyectamos el nodo de forma invisible, hacemos clic y lo eliminamos
   document.body.appendChild(linkDescarga);
   linkDescarga.click();
   document.body.removeChild(linkDescarga);
-}
-
-
-// =========================================================================
-// FUNCIÓN IMPORTADORA: FUERZA LA INYECCIÓN DIRECTA EN EL ARRAY
-// =========================================================================
-async function cargarHistorialPersistente() {
-  if (typeof obtenerHistorialDeAuth0 === "function") {
-    console.log("> Solicitando importación de datos a Auth0...");
-    var historialGuardado = await obtenerHistorialDeAuth0();
-    
-    if (historialGuardado && historialGuardado.length > 0) {
-      // Reasignación directa del array global con los datos de la nube
-      historialConsultas = historialGuardado;
-      
-      // Forzar el pintado en la tabla inmediatamente
-      actualizarRenderTablaHistorial();
-      console.log("> Tabla renderizada con los datos importados.");
-    } else {
-      console.log("> No se encontraron consultas previas en Auth0 para este usuario.");
-    }
-  } else {
-    console.warn("> La función obtenerHistorialDeAuth0 no está disponible aún.");
-  }
 }

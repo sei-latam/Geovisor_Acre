@@ -1,11 +1,6 @@
-// ==========================================
-// 1. CONFIGURACIÓN DEL MAPA Y TODOS LOS BASEMAPS ORIGINALES
-// ==========================================
-
 var map = L.map('map', { zoomControl: false }).setView([-11.018, -68.752], 13);
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-// Capas de mapas base independientes
 var capasMapasBase = {
   "Satélite Esri": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"),
   "Esri World Street Map": L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"),
@@ -15,16 +10,13 @@ var capasMapasBase = {
   "CartoDB Dark Matter": L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png")
 };
 
-// Capas que forman el grupo especial "Satélite Híbrido"
 var esriImágenes = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}");
 var esriEtiquetas = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}");
 var grupoSateliteHibrido = L.layerGroup([esriImágenes, esriEtiquetas]);
 
-// Asignar e inicializar el mapa con el mapa por defecto original (Satélite Híbrido)
 var mapaBaseActivoActual = grupoSateliteHibrido;
 mapaBaseActivoActual.addTo(map);
 
-// --- CONFIGURACIÓN DE TU GEOSERVER (WMS) ---
 var GEOSERVER_URL = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
 
 var capaInundacion1 = L.tileLayer.wms(GEOSERVER_URL, {
@@ -43,14 +35,9 @@ var capaInundacion2 = L.tileLayer.wms(GEOSERVER_URL, {
   attribution: "GeoServer"
 });
 
-// ==========================================
-// 2. CAMBIO DE MAPAS BASE SIN AFECTAR LAS CAPAS RASTER
-// ==========================================
 function cambiarMapaBase(nombre) {
-  // Retirar el mapa base que está actualmente activo
   map.removeLayer(mapaBaseActivoActual);
 
-  // Asignar y agregar el nuevo mapa base seleccionado
   if (nombre === "Satélite Híbrido") {
     mapaBaseActivoActual = grupoSateliteHibrido;
   } else {
@@ -59,9 +46,6 @@ function cambiarMapaBase(nombre) {
   mapaBaseActivoActual.addTo(map);
 }
 
-// ==========================================
-// 3. CONTROLADORES INDEPENDIENTES DE LOS CHECKBOXES
-// ==========================================
 document.getElementById('chkRaster1').addEventListener('change', function(e) {
   if(e.target.checked) {
     capaInundacion1.addTo(map);
@@ -92,9 +76,6 @@ function actualizarLeyenda() {
   contenedor.innerHTML = html || `<span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>`;
 }
 
-// ==========================================
-// 4. RENDEREADO DE LA GALERÍA COMPLETA DE BASEMAPS (7 OPCIONES)
-// ==========================================
 var mapaDefinicionesOriginales = {
   "Satélite Híbrido": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/4636/4414",
   "Satélite Esri": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/13/4636/4414",
@@ -120,9 +101,6 @@ Object.keys(mapaDefinicionesOriginales).forEach(nombre => {
   grid.appendChild(box);
 });
 
-// ==========================================
-// 5. FUNCIONES DE INTERFAZ, BUSQUEDA Y DIBUJO
-// ==========================================
 function toggleWidget(id) {
   var panel = document.getElementById(id);
   if(panel) panel.classList.toggle('hidden');

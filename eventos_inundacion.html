@@ -13,30 +13,15 @@
 </head>
 <body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
 
-<header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-between px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
-    <div class="w-1/4 invisible lg:block"></div>
-
+<header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
     <nav class="flex h-full items-center gap-6 text-xs tracking-tight text-slate-400">
       <a href="index.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-house mr-1.5"></i> Inicio</a>
       <a href="area_estudio.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-map-location-dot mr-1.5"></i> Área de Estudio</a>
       <a href="eventos_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-chart-line mr-1.5"></i> Análisis de Eventos</a>
       <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>  
-      <a href="pronostico.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-cloud-sun mr-1.5"></i> Pronóstico</a>      
-      <a id="nav-areas-inundacion" href="areas_inundacion.html" class="hidden h-full flex items-center px-1 border-b-2 border-transparent text-slate-400 hover:text-slate-300 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>
+      <a href="pronostico.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-cloud-sun mr-1.5"></i> Pronóstico</a>
+      <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>      
     </nav>
-
-    <div class="w-1/4 flex items-center justify-end gap-3">
-        <button id="btn-login" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-[11px] font-bold text-white transition-all flex items-center gap-1.5 border-0 cursor-pointer shadow-md">
-            <i class="fas fa-sign-in-alt text-[10px]"></i> Ingresar
-        </button>
-
-        <div id="user-profile" class="hidden flex items-center gap-3">
-            <span id="user-name" class="text-[11px] text-slate-300 font-semibold max-w-[120px] truncate"></span>
-            <button id="btn-logout" class="px-2.5 py-1.5 bg-slate-800 hover:bg-red-600 rounded-lg text-[11px] font-bold text-white transition-all flex items-center gap-1.5 border-0 cursor-pointer shadow-md">
-                <i class="fas fa-sign-out-alt text-[10px]"></i> Salir
-            </button>
-        </div>
-    </div>
   </header>
 
   <div class="flex-1 px-4 pb-2 flex gap-4 h-[calc(100vh-8rem)] items-center overflow-hidden">
@@ -134,12 +119,8 @@
     let chartIDF = null, chartHidro = null;
     let datosIDFOriginales = [], datosHidroOriginales = [];
     let labelsIDF = [], labelsHidro = [];
-
-    // Paletas de color unificadas
     const coloresIDF = { "1 año": "#93c5fd", "2 años": "#60a5fa", "5 años": "#3b82f6", "10 años": "#2563eb", "25 años": "#1d4ed8", "50 años": "#1e40af", "100 años": "#1e3a8a", "500 años": "#0f172a" };
     const coloresHidro = { "1 año": "#a7f3d0", "2 años": "#6ee7b7", "5 años": "#34d399", "10 años": "#10b981", "25 años": "#059669", "50 años": "#047857", "100 años": "#065f46", "500 años": "#022c22" };
-    
-    // Control de selección activa en pantalla
     let seleccionadosIDF = ["1 año"]; 
     let seleccionadosHidro = ["1 año"];
 
@@ -199,7 +180,6 @@
       });
     }
 
-    // --- ACCIONES DENTRO DEL UI SELECT (ADICIONAR / ELIMINAR / ACCIONES RÁPIDAS) ---
     function adicionarPeriodo(tipo, periodo) {
       let lista = (tipo === 'idf') ? seleccionadosIDF : seleccionadosHidro;
       if (!lista.includes(periodo)) {
@@ -217,7 +197,6 @@
       actualizarUI(tipo);
     }
 
-    // Nueva función unificada que recupera la acción masiva "Todos" / "Ninguno"
     function alternarTodos(tipo, agregarTodos) {
       const todosLosPeriodos = Object.keys(coloresIDF);
       if (tipo === 'idf') {
@@ -228,7 +207,6 @@
       actualizarUI(tipo);
     }
 
-    // --- SINCRONIZADOR DE GRÁFICOS Y TAGS ---
     function actualizarUI(tipo) {
       const isIdf = (tipo === 'idf');
       const chart = isIdf ? chartIDF : chartHidro;
@@ -237,7 +215,6 @@
       const paleta = isIdf ? coloresIDF : coloresHidro;
       const tagContainer = document.getElementById(isIdf ? 'tagsIDF' : 'tagsHidro');
 
-      // 1. Reconstruir datasets del Chart.js según selección
       chart.data.datasets = seleccionados.map(periodo => ({
         label: periodo,
         data: datosOriginales.map(row => parseFloat(row[periodo])),
@@ -247,7 +224,6 @@
       }));
       chart.update();
 
-      // 2. Renderizar Tags interactivos con botón de borrado (X)
       tagContainer.innerHTML = "";
       seleccionados.forEach(periodo => {
         const bgBadge = isIdf ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
@@ -259,7 +235,6 @@
       });
     }
 
-    // --- EXPORTAR EXCLUSIVAMENTE LA SELECCIÓN ACTIVA A CSV ---
     function exportarCSVFiltrado(tipo) {
       const isIdf = (tipo === 'idf');
       const seleccionados = isIdf ? seleccionadosIDF : seleccionadosHidro;
@@ -288,9 +263,5 @@
       document.body.removeChild(link);
     }
   </script>
-
-<script src="auth0-spa-js.production.js"></script>
-  <script src="auth-control.js"></script>
-
 </body>
 </html>
