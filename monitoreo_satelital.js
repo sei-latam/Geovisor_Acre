@@ -17,7 +17,7 @@ var grupoSateliteHibrido = L.layerGroup([esriImágenes, esriEtiquetas]);
 var mapaBaseActivoActual = grupoSateliteHibrido;
 mapaBaseActivoActual.addTo(map);
 
-var GEOSERVER_URL = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
+var GEOSERVER_URL = "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms";
 
 var capaInundacion1 = L.tileLayer.wms(GEOSERVER_URL, {
   layers: 'rio_acre_manchas:Evento_20230325_smooth27_2',
