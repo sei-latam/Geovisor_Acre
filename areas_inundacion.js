@@ -598,7 +598,7 @@ function agregarConsultaAlHistorial(nombrePlan, valorProfundidad, timestampFecha
     depth: parseFloat(valorProfundidad).toFixed(2),
     fechaDetectada: timestampFecha,
     servicio: urlServicioCapa,
-    nombreCapaInterno: identificadorCapa, // Guardamos este para que el módulo de pronóstico sepa qué capa encender
+    nombreCapaInterno: identificadorCapa,
     instanciaCapa: nuevaCapaWMS
   };
 
