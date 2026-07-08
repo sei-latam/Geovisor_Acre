@@ -57,23 +57,22 @@
       </div>
 
       <div id="panelDibujo" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-64 flex flex-col text-slate-700 overflow-hidden">
-        <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
+        <div class="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
           <span>Dibujo y Medición</span>
           <button onclick="toggleWidget('panelDibujo')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
         </div>
         <div class="p-4 flex flex-col gap-3">
-          <div class="grid grid-cols-4 gap-1.5 border-b pb-3 border-slate-100">
-            <button id="btn-draw-select" onclick="activarHerramientaDibujo('select')" title="Seleccionar Entidad" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
-            <button id="btn-draw-point" onclick="activarHerramientaDibujo('point')" title="Dibujar Punto" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-location-dot text-xs"></i></button>
-            <button id="btn-draw-polyline" onclick="activarHerramientaDibujo('polyline')" title="Dibujar Polilínea" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-share-nodes text-xs"></i></button>
-            <button id="btn-draw-polygon" onclick="activarHerramientaDibujo('polygon')" title="Dibujar Polígono" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-draw-polygon text-xs"></i></button>
-            <button id="btn-draw-rectangle" onclick="activarHerramientaDibujo('rectangle')" title="Dibujar Rectángulo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-vector-square text-xs"></i></button>
-            <button id="btn-draw-circle" onclick="activarHerramientaDibujo('circle')" title="Dibujar Círculo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-circle text-xs"></i></button>
-            <button id="btn-draw-lasso" onclick="activarHerramientaDibujo('lasso')" title="Selección por Lazo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></button>
-            <button id="btn-draw-measure" onclick="activarHerramientaDibujo('measure')" title="Medir Distancia" class="h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-ruler-combined text-xs"></i></button>
+          <div class="grid grid-cols-3 gap-1.5 border-b pb-3 border-slate-100">
+            <button id="btn-draw-point" onclick="activarHerramientaDibujo('point')" title="Punto" class="h-9 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-location-dot text-xs"></i></button>
+            <button id="btn-draw-polyline" onclick="activarHerramientaDibujo('polyline')" title="Polilínea (Puntos)" class="h-9 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-route text-xs"></i></button>
+            <button id="btn-draw-lasso" onclick="activarHerramientaDibujo('lasso')" title="Mano Alzada (Lasso)" class="h-9 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-signature text-xs"></i></button>
+            
+            <button id="btn-draw-circle" onclick="activarHerramientaDibujo('circle')" title="Círculo" class="h-9 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-circle text-xs"></i></button>
+            <button id="btn-draw-rectangle" onclick="activarHerramientaDibujo('rectangle')" title="Rectángulo" class="h-9 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-vector-square text-xs"></i></button>
+            <button id="btn-draw-measure" onclick="activarHerramientaDibujo('measure')" title="Medir Distancia" class="h-9 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-ruler-combined text-xs"></i></button>
           </div>
           <button onclick="limpiarDibujos()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-1.5 rounded flex items-center justify-center gap-1.5 transition-colors">
-            <i class="fa-solid fa-trash-can"></i> Limpiar gráficos de pantalla
+            <i class="fa-solid fa-trash-can"></i> Limpiar gráficos
           </button>
           <div id="statusDibujo" class="text-[10px] text-slate-400 italic text-center border-t pt-2 mt-1">Ninguna herramienta activa</div>
         </div>
