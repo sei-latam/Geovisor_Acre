@@ -73,7 +73,7 @@ var esriLabelsLayer = L.tileLayer(mapaBaseDefiniciones["Satélite Híbrido"].url
 var capaBaseInstanciada = L.layerGroup([esriHibridoLayer, esriLabelsLayer]).addTo(map);
 var mapaBaseActualNombre = "Satélite Híbrido";
 
-var urlServidorWms = "https://geoserver.coast-wind.org/geoserver/rio_acre_manchas/wms";
+var urlServidorWms = "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms";
 var espacioTrabajoReal = "rio_acre_manchas";
 var estiloAsignado = "estilo_inundacion";
 
@@ -259,21 +259,21 @@ async function procesarConsultaAutomatica() {
 
   var numeroPasoFormateado = String(puntoMasCercano.step).padStart(2, '0');
   
-  var partesFecha = puntoMasCercano.date.trim().split(" "); // ["19APR2026", "13:30:00"]
-  var fechaBruta = partesFecha[0] || "";                    // "19APR2026"
-  var horaBruta = partesFecha[1] || "00:00:00";              // "13:30:00"
+  var partesFecha = puntoMasCercano.date.trim().split(" ");
+  var fechaBruta = partesFecha[0] || "";
+  var horaBruta = partesFecha[1] || "00:00:00";
 
-  var dia = fechaBruta.substring(0, 2).padStart(2, '0');     // "19"
-  var mes = fechaBruta.substring(2, 5).toUpperCase();        // "APR"
-  var anio = fechaBruta.substring(5, 9) || "2026";           // "2026"
+  var dia = fechaBruta.substring(0, 2).padStart(2, '0');
+  var mes = fechaBruta.substring(2, 5).toUpperCase();
+  var anio = fechaBruta.substring(5, 9) || "2026";
 
-  var horaMinutoSegundo = horaBruta.split(":");              // ["13", "30", "00"]
+  var horaMinutoSegundo = horaBruta.split(":");
   var hora = (horaMinutoSegundo[0] || "00").padStart(2, '0');
   var minuto = (horaMinutoSegundo[1] || "00").padStart(2, '0');
   var segundo = (horaMinutoSegundo[2] || "00").padStart(2, '0');
 
   var cadenaFechaFinal = `${dia}${mes}${anio}_${hora}_${minuto}_${segundo}`;
-  var sufijoTR = dbExcelPlanes[planSeleccionado].capaSuffix; // Obtiene TR02, TR10, etc.
+  var sufijoTR = dbExcelPlanes[planSeleccionado].capaSuffix;
   
   var nombreCapaGeoTIFF = `Depth_${numeroPasoFormateado}_${cadenaFechaFinal}_${sufijoTR}`;
 
