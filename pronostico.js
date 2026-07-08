@@ -140,97 +140,6 @@ function toggleWidget(idPanel) {
   document.getElementById(idPanel).classList.toggle('hidden');
 }
 
-function actualizarLeyendaDinamica() {
-  renderizarRampaLeyenda();
-  var contenedorLeyenda = document.getElementById('leyendaContenedorDinamico');
-  var geeBaseContainer = document.getElementById('geeBaseLayerContainer');
-  var geeOverlayContainer = document.getElementById('geeOverlayLayersContainer');
-  
-  if(geeBaseContainer) {
-    geeBaseContainer.innerHTML = `
-      <i class="fa-solid fa-earth-americas text-blue-500 text-sm"></i>
-      <span class="flex-1 font-semibold">${mapaBaseActualNombre}</span>
-      <span class="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold">Activo</span>
-    `;
-  }
-
-  if (contenedorLeyenda) contenedorLeyenda.innerHTML = "";
-  if (geeOverlayContainer) geeOverlayContainer.innerHTML = "";
-  
-  if (historialConsultas.length === 0 && !consultaActualTemporal) {
-    if (contenedorLeyenda) contenedorLeyenda.innerHTML = `<span class="text-slate-400 italic">Ninguna capa cargada</span>`;
-    if (geeOverlayContainer) geeOverlayContainer.innerHTML = `<span class="text-slate-400 italic text-[11px]">No hay capas en el historial.</span>`;
-    return;
-  }
-  
-  if(consultaActualTemporal) {
-    if (contenedorLeyenda) {
-      contenedorLeyenda.innerHTML += `
-        <div class="flex items-center gap-2 mb-1">
-          <span class="w-3 h-3 rounded bg-amber-500 shrink-0 animate-pulse"></span>
-          <span class="text-[11px] font-medium text-amber-700">[Previsualizando] ${consultaActualTemporal.plan}</span>
-        </div>
-      `;
-    }
-    
-    if (geeOverlayContainer) {
-      geeOverlayContainer.innerHTML += `
-        <div class="bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center justify-between text-xs animate-pulse">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
-            <span class="font-bold text-amber-800">${consultaActualTemporal.plan} (${consultaActualTemporal.depth}m)</span>
-          </div>
-          <span class="text-[9px] uppercase font-black text-amber-600 tracking-wider">Previa</span>
-        </div>
-      `;
-    }
-  }
-  
-  historialConsultas.forEach((item, index) => {
-    var estaActivaEnMapa = map.hasLayer(item.instanciaCapa);
-    
-    if (contenedorLeyenda) {
-      contenedorLeyenda.innerHTML += `
-        <div class="flex items-center gap-2 opacity-${estaActivaEnMapa ? '100' : '40'} transition-opacity">
-          <span class="w-3 h-3 rounded shrink-0 border border-slate-200" style="background-color: ${obtenerColorPorProfundidad(item.depth)};"></span>
-          <span>${item.plan} (${item.depth} m)</span>
-        </div>
-      `;
-    }
-    
-    if (geeOverlayContainer) {
-      var itemCapaGEE = document.createElement('div');
-      itemCapaGEE.className = "bg-white border border-slate-200 rounded-lg p-2 flex items-center justify-between shadow-sm hover:border-slate-300 transition-all";
-      itemCapaGEE.innerHTML = `
-        <div class="flex items-center gap-2.5 flex-1 min-w-0">
-          <input type="checkbox" id="chk-gee-${index}" ${estaActivaEnMapa ? 'checked' : ''} 
-                 onchange="alternarVisibilidadCapaHistorial(${index})" 
-                 class="w-4 h-4 text-blue-600 bg-gray-100 border-slate-300 rounded focus:ring-blue-500 cursor-pointer">
-          <div class="flex flex-col min-w-0">
-            <span class="font-bold text-slate-800 text-xs truncate">${item.plan} - Depth ${item.depth}m</span>
-            <span class="text-[9px] font-mono text-slate-400 truncate">${item.servicio.split(':')[1]}</span>
-          </div>
-        </div>
-        <button onclick="removerConsultaHistorial(${index})" class="text-slate-400 hover:text-red-500 p-1 transition-colors ml-1" title="Eliminar de la sesión">
-          <i class="fa-solid fa-trash-can text-[11px]"></i>
-        </button>
-      `;
-      geeOverlayContainer.appendChild(itemCapaGEE);
-    }
-  });
-}
-
-function alternarVisibilidadCapaHistorial(index) {
-  var item = historialConsultas[index];
-  if(!item) return;
-  
-  if (map.hasLayer(item.instanciaCapa)) {
-    map.removeLayer(item.instanciaCapa);
-  } else {
-    item.instanciaCapa.addTo(map);
-  }
-  actualizarLeyendaDinamica();
-}
 
 map.on('layeradd layerremove', function(e) {
   if(e.layer && e.layer.options && e.layer.options.layers) {
@@ -405,3 +314,82 @@ function volverAlHome() { map.setView([-11.018, -68.752], 14); }
 function obtenerUbicacionActual() {
   map.locate({setView: true, maxZoom: 15});
 }
+
+
+async function cargarPronosticosAlGestorNativo() {
+  var urlJsonRepositorio = "consultas.json";
+
+  try {
+    var respuesta = await fetch(urlJsonRepositorio);
+    if (!respuesta.ok) throw new Error("No se pudo leer el archivo de pronósticos.");
+    
+    var capasAprobadas = await respuesta.json();
+
+    capasAprobadas.forEach(function(capa) {
+      // 1. Extraemos los parámetros dinámicos directamente de la URL del servicio guardada
+      var urlObjeto = new URL(capa.servicio);
+      var params = new URLSearchParams(urlObjeto.search);
+      var nombreCapaInterno = params.get("layers") || params.get("LAYERS");
+
+      if (!nombreCapaInterno) return; // Si no viene la capa asignada en la URL, saltar
+
+      // 2. Configuramos la capa WMS usando tus parámetros estandarizados nativos del proyecto
+      var capaWMS = L.tileLayer.wms("http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms", {
+        layers: nombreCapaInterno,
+        format: 'image/png',
+        transparent: true,
+        styles: 'estilo_inundacion', 
+        version: '1.1.1',
+        zIndex: 100
+      });
+
+      // 3. Formateamos la fecha del JSON de forma limpia para la etiqueta del usuario final
+      var fechaLimpia = capa.fechaDetectada.replace('T', ' ');
+      var etiquetaMenu = `🌊 Pronóstico (${fechaLimpia})`;
+
+      // 4. Inyección directa en el gestor nativo flotante superior derecho
+      if (controlCapasLeaflet) {
+        controlCapasLeaflet.addOverlay(capaWMS, etiquetaMenu);
+      }
+    });
+
+    if (typeof logToConsole === "function") {
+      logToConsole(`> Sincronización exitosa: ${capasAprobadas.length} mapas de pronóstico listos.`);
+    }
+
+  } catch (error) {
+    console.error("Error al inyectar capas al gestor nativo:", error);
+  }
+}
+
+async function cargarPronosticosAlGestorNativo() {
+  try {
+    var respuesta = await fetch("consultas.json");
+    if (!respuesta.ok) return;
+    
+    var capasAprobadas = await respuesta.json();
+
+    capasAprobadas.forEach(function(capa) {
+      // 1. Hacemos la petición al GeoServer usando directamente la URL completa del JSON
+      var capaWMS = L.tileLayer.wms(capa.servicio, {
+        format: 'image/png',
+        transparent: true,
+        version: '1.1.1'
+      });
+
+      // 2. Extraemos la fecha del JSON para la etiqueta
+      var fechaLimpia = capa.fechaDetectada.replace('T', ' ');
+      var etiquetaMenu = `🌊 Pronóstico (${fechaLimpia})`;
+
+      // 3. La añadimos a tu selector de capas ya existente
+      if (typeof selectorCapas !== "undefined") {
+        selectorCapas.addOverlay(capaWMS, etiquetaMenu);
+      }
+    });
+  } catch (error) {
+    console.error("Error al cargar pronósticos:", error);
+  }
+}
+
+// Ejecutar la adición al terminar de cargar el script
+cargarPronosticosAlGestorNativo();
