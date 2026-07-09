@@ -2,237 +2,101 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Geovisor - Áreas de Inundación</title>
+  <title>Geovisor - Inicio</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="logo-inst3.png">
   <link rel="stylesheet" href="index.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-[#e7ebee] h-screen flex flex-col overflow-hidden">
 
 <header class="h-16 border-b border-slate-800 bg-[#0f172a]/95 flex items-center justify-center px-6 z-50 rounded-xl m-2 shadow-lg shrink-0">
     <nav class="flex h-full items-center gap-6 text-xs tracking-tight text-slate-400">
-      <a href="areas_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-earth-americas mr-1.5"></i> Áreas de Inundación</a>      
+      <a href="index.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-house mr-1.5"></i> Inicio</a>
+      <a href="area_estudio.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-map-location-dot mr-1.5"></i> Área de Estudio</a>
+      <a href="eventos_inundacion.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-chart-line mr-1.5"></i> Análisis de Eventos</a>
+      <a href="monitoreo_satelital.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-satellite mr-1.5"></i> Monitoreo Satelital</a>  
+      <a href="pronostico.html" class="h-full flex items-center px-1 border-b-2 border-transparent hover:text-slate-200 hover:border-slate-50 transition-all"><i class="fa-solid fa-cloud-sun mr-1.5"></i> Pronóstico</a>
     </nav>
   </header>
 
-  <div class="flex-1 px-4 pb-2 grid grid-cols-12 gap-4 overflow-hidden">
-    
-    <div class="col-span-7 dashboard-panel !p-0 relative group min-h-[400px] rounded-xl overflow-hidden bg-white shadow">
-      <div id="map" class="w-full h-full z-10"></div>
+  <div class="flex-1 px-4 pb-2 flex items-center justify-center overflow-hidden">
+    <div class="w-full max-w-7xl flex gap-6 h-[calc(100vh-8rem)] items-center">
       
-      <div class="absolute top-4 left-4 z-[1000] flex flex-col gap-1 w-72">
-        <div class="flex items-center bg-white border border-slate-200 rounded-lg shadow-md px-2 py-1 transition-all focus-within:ring-2 focus-within:ring-blue-500">
-          <input type="text" id="searchInput" placeholder="Buscar dirección o lugar..." class="w-full text-xs text-slate-700 outline-none px-1 bg-transparent" oninput="buscarSugerencias()" onkeypress="if(event.key === 'Enter') ejecutarBusquedaDirecta()">
-          <button onclick="ejecutarBusquedaDirecta()" class="bg-blue-600 hover:bg-blue-500 text-white rounded p-1.5 transition-colors shrink-0">
-            <i class="fa-solid fa-magnifying-glass text-xs"></i>
-          </button>
-        </div>
-        <div id="searchSuggestions" class="hidden bg-white border border-slate-200 rounded-lg shadow-xl max-h-48 overflow-y-auto flex flex-col divide-y divide-slate-100 text-xs text-slate-700"></div>
-      </div>
-
-      <div class="absolute top-4 right-4 z-[1000] flex gap-2">
-        <button onclick="toggleWidget('panelDibujo')" title="Herramientas de Dibujo y Medición" class="w-9 h-9 bg-white text-slate-700 border border-slate-200 rounded-lg shadow-md flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-all">
-          <i class="fa-solid fa-pen-ruler text-sm"></i>
-        </button>
-        <button onclick="toggleWidget('panelBasemaps')" title="Galería de Mapas Base" class="w-9 h-9 bg-white text-slate-700 border border-slate-200 rounded-lg shadow-md flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-all">
-          <i class="fa-solid fa-table-cells-large text-sm"></i>
-        </button>
-      </div>
-
-      <div id="panelBasemaps" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-80 flex flex-col text-slate-700 overflow-hidden">
-        <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
-          <span>Galería de mapas base</span>
-          <button onclick="toggleWidget('panelBasemaps')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
-        </div>
-        <div id="basemapGridContainer" class="p-3 grid grid-cols-2 gap-2 max-h-80 overflow-y-auto bg-slate-50"></div>
-      </div>
-
-      <div id="panelDibujo" class="hidden absolute top-16 right-4 z-[1000] bg-white border border-slate-200 rounded-xl shadow-2xl w-64 flex flex-col text-slate-700 overflow-hidden">
-        <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
-          <span>Dibujo y Medición</span>
-          <button onclick="toggleWidget('panelDibujo')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
-        </div>
-        <div class="p-4 flex flex-col gap-3">
-          <div class="grid grid-cols-4 gap-1.5 border-b pb-3 border-slate-100">
-            <button id="btn-draw-select" onclick="activarHerramientaDibujo('select')" title="Seleccionar Entidad" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
-            <button id="btn-draw-point" onclick="activarHerramientaDibujo('point')" title="Dibujar Punto" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-location-dot text-xs"></i></button>
-            <button id="btn-draw-polyline" onclick="activarHerramientaDibujo('polyline')" title="Dibujar Polilínea" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-share-nodes text-xs"></i></button>
-            <button id="btn-draw-polygon" onclick="activarHerramientaDibujo('polygon')" title="Dibujar Polígono" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-draw-polygon text-xs"></i></button>
-            <button id="btn-draw-rectangle" onclick="activarHerramientaDibujo('rectangle')" title="Dibujar Rectángulo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-vector-square text-xs"></i></button>
-            <button id="btn-draw-circle" onclick="activarHerramientaDibujo('circle')" title="Dibujar Círculo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-circle text-xs"></i></button>
-            <button id="btn-draw-lasso" onclick="activarHerramientaDibujo('lasso')" title="Selección por Lazo" class="h-8 bg-slate-100 hover:bg-slate-200 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i></button>
-            <button id="btn-draw-measure" onclick="activarHerramientaDibujo('measure')" title="Medir Distancia" class="h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded flex items-center justify-center transition-all"><i class="fa-solid fa-ruler-combined text-xs"></i></button>
-          </div>
-          <button onclick="limpiarDibujos()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs py-1.5 rounded flex items-center justify-center gap-1.5 transition-colors">
-            <i class="fa-solid fa-trash-can"></i> Limpiar gráficos de pantalla
-          </button>
-          <div id="statusDibujo" class="text-[10px] text-slate-400 italic text-center border-t pt-2 mt-1">Ninguna herramienta activa</div>
-        </div>
-      </div>
-
-      <div class="absolute bottom-4 left-4 z-[1000] flex flex-col gap-2 items-start">
-        <div class="flex flex-col gap-1 shadow-md rounded-lg overflow-hidden border border-slate-200 bg-white">
-          <button onclick="volverAlHome()" title="Vista predeterminada" class="w-8 h-8 flex items-center justify-center hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-house text-xs"></i></button>
-          <button onclick="obtenerUbicacionActual()" title="Mi ubicación" class="w-8 h-8 flex items-center justify-center border-t border-slate-100 hover:bg-slate-50 hover:text-blue-600 transition-colors"><i class="fa-solid fa-crosshairs text-xs"></i></button>
-        </div>
-        
-        <div class="flex gap-2">
-          <button onclick="toggleWidget('panelCapasGEE')" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i><span>Gestor de Capas</span>
-          </button>
-          <button onclick="toggleLeyenda()" class="bg-white border border-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-slate-50 transition-all">
-            <i class="fa-solid fa-list-check text-emerald-600 text-sm"></i><span>Leyenda</span>
-          </button>
-        </div>
-
-        <div id="panelCapasGEE" class="hidden bg-white border border-slate-200 rounded-xl shadow-2xl w-72 flex flex-col text-slate-700 overflow-hidden">
-          <div class="bg-slate-800 text-white px-4 py-2.5 flex items-center justify-between font-medium text-xs">
-            <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> Capas Seleccionadas</span>
-            <button onclick="toggleWidget('panelCapasGEE')" class="hover:opacity-70"><i class="fa-solid fa-xmark text-sm"></i></button>
-          </div>
-          <div class="p-3 bg-slate-50 max-h-64 overflow-y-auto flex flex-col gap-3">
-            <div>
-              <span class="text-[10px] font-bold text-slate-900 tracking-wider block mb-1.5">Mapa Base Global</span>
-              <div id="geeBaseLayerContainer" class="bg-white border border-slate-200 rounded-lg p-2.5 text-xs font-medium text-slate-700 flex items-center gap-2 shadow-sm"></div>
-            </div>
-            <div>
-              <span class="text-[10px] font-bold text-slate-900 tracking-wider block mb-1.5">Capas Disponibles</span>
-              <div id="geeOverlayLayersContainer" class="flex flex-col gap-1.5"></div>
-            </div>
-          </div>
-        </div>
-
-        <div id="panelLeyenda" class="hidden bg-white/95 backdrop-blur border border-slate-200 p-3 rounded-lg shadow-xl w-56 text-slate-700">
-          <div class="text-[11px] font-bold text-slate-900 tracking-wider border-b pb-1 mb-2">Leyenda y simbología</div>
-
-          <div class="mb-2 pb-2 border-b border-slate-100">
-            <div class="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Rampa de Profundidad (m)</div>
-            <div id="leyendaRampaContenedor" class="flex flex-col gap-1 text-[11px]"></div>
-          </div>
-
-          <div class="text-[10px] font-bold text-slate-500 tracking-wider mb-1">Capas Activas</div>
-          <div id="leyendaContenedorDinamico" class="flex flex-col gap-1.5 text-xs">
-            <span class="text-slate-400 italic">No hay capas cargadas en el visor.</span>
+      <div class="w-[65%] h-full flex flex-col justify-center">
+        <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
+          <span class="text-[14px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-3">Río Acre - Ciudad de Cobija</span>
+          <div class="flex-1 w-full rounded-lg border bg-slate-100 overflow-hidden flex items-center justify-center shadow-inner">
+            <img src="img/acre4.jpg" alt="Vista aérea de Acre" class="w-full h-full object-cover">
           </div>
         </div>
       </div>
-    </div>
-
-    <div class="col-span-5 flex flex-col gap-4 overflow-y-auto pr-1">
       
-      <div class="bg-white rounded-xl p-4 shadow space-y-3 border border-slate-100 shrink-0">
-        <div class="text-xs font-bold text-slate-700 tracking-tight border-b border-slate-100 pb-1.5 flex items-center gap-2">
-          <i class="fa-solid fa-arrow-down-short-wide text-blue-600 text-sm"></i> Panel de Consultas
-        </div>
-        <div class="grid grid-cols-12 gap-3 items-end">
-          <div class="col-span-5">
-            <label class="text-[10px] font-black text-slate-700 tracking-wider block mb-1">1. Digite Profundidad (metros):</label>
-            <div class="relative">
-              <input 
-                type="number" 
-                id="depthInput" 
-                step="0.01" 
-                oninput="validarIngresoDepth()" 
-                class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 font-mono font-bold text-[12px] text-blue-600 text-center outline-none focus:ring-2 focus:ring-blue-500 transition-all"  
-                placeholder="Ej: 5.40">
+      <div class="w-[35%] h-full flex flex-col justify-center">
+        <div class="p-4 bg-white rounded-xl shadow-sm border border-slate-200 h-full flex flex-col">
+          <span class="text-[14px] font-bold text-slate-900 text-center tracking-wider border-b pb-1 mb-3">Instituciones Participantes</span>
+          
+          <div class="flex-1 flex flex-col gap-3 overflow-y-auto pr-1 justify-center">
+            
+            <div class="w-full flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all h-[21%]">
+              <div class="w-24 h-full flex items-center justify-center shrink-0 bg-white rounded-lg p-1 border border-slate-200/60">
+                <img src="img/logo_senamhi.png" alt="SENAMHI" class="max-h-full max-w-full object-contain">
+              </div>
+              <div class="flex flex-col justify-center">
+                <span class="text-xs font-bold text-slate-800">SENAMHI</span>
+                <span class="text-[10px] text-slate-500 leading-tight mt-0.5">Servicio Nacional de Meteorología e Hidrología</span>
+              </div>
             </div>
-          </div>
-          <div class="col-span-7">
-            <label class="text-[10px] font-black text-slate-700 tracking-wider block mb-1">2. Seleccione Escenario / TR:</label>
-            <select id="planSelect" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[12px] font-semibold text-slate-600 outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer" onchange="procesarConsultaAutomatica()" disabled>
-              <option value="" selected disabled> Ingrese profundidad primero</option>
-              <option value="tr2">TR 2 Años</option>
-              <option value="tr10">TR 10 Años</option>
-              <option value="tr50">TR 50 Años</option>
-              <option value="tr100">TR 100 Años</option>
-              <option value="tr2023">Histórico Año 2023</option>
-            </select>
-          </div>
-        </div>
-        <div class="bg-slate-50 border border-slate-100 p-3 rounded-lg flex items-center justify-between">
-          <div class="flex-1 mr-2">
-            <label class="text-xs font-semibold text-slate-600 block mb-1">3. Por favor ingrese la fecha y hora de su consulta:</label>
-            <input type="datetime-local" id="fechaDetectadaInput" class="font-medium text-slate-700 bg-white border border-slate-200 rounded px-2 py-1 text-xs outline-none w-full cursor-pointer">
-          </div>
-          <div class="text-right shrink-0">
-            <span id="badgeEstado" class="text-[10px] font-medium bg-slate-200 text-slate-600 px-2.5 py-1 rounded">Inactivo</span>
-          </div>
-        </div>
-      </div>
+            
+            <div class="w-full flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all h-[21%]">
+              <div class="w-24 h-full flex items-center justify-center shrink-0 bg-white rounded-lg p-1 border border-slate-200/60">
+                <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="max-h-full max-w-full object-contain">
+              </div>
+              <div class="flex flex-col justify-center">
+                <span class="text-xs font-bold text-slate-800">MDPRyA</span>
+                <span class="text-[10px] text-slate-500 leading-tight mt-0.5">Ministerio de Desarrollo Productivo, Rural y Agricultura</span>
+              </div>
+            </div>
+            
+            <div class="w-full flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all h-[21%]">
+              <div class="w-24 h-full flex items-center justify-center shrink-0 bg-white rounded-lg p-1 border border-slate-200/60">
+                <img src="img/logo_sei.png" alt="SEI" class="max-h-full max-w-full object-contain">
+              </div>
+              <div class="flex flex-col justify-center">
+                <span class="text-xs font-bold text-slate-800">SEI</span>
+                <span class="text-[10px] text-slate-500 leading-tight mt-0.5">Stockholm Environment Institute</span>
+              </div>
+            </div>
+            
+            <div class="w-full flex items-center gap-4 p-3 bg-slate-50 rounded-xl border border-slate-100 hover:shadow-md transition-all h-[21%]">
+              <div class="w-24 h-full flex items-center justify-center shrink-0 bg-white rounded-lg p-1 border border-slate-200/60">
+                <img src="img/logo_BID.png" alt="BID" class="max-h-full max-w-full object-contain">
+              </div>
+              <div class="flex flex-col justify-center">
+                <span class="text-xs font-bold text-slate-800">BID</span>
+                <span class="text-[10px] text-slate-500 leading-tight mt-0.5">Banco Interamericano de Desarrollo</span>
+              </div>
+            </div>
 
-      <div class="bg-white rounded-xl p-4 shadow h-[250px] flex flex-col justify-between border border-slate-100 shrink-0">
-        <div class="text-xs font-bold text-slate-700 tracking-tight mb-2 flex items-center gap-1">
-          <i class="fa-solid fa-chart-area text-blue-600 text-sm"></i> Gráfico de Profundidad (metros):
-        </div>
-        <div class="w-full flex-1 bg-slate-50 border border-slate-100 rounded-xl p-1 relative min-h-[110px]">
-          <canvas id="chartJsCanvas"></canvas>
-        </div>
-        <div class="flex items-center gap-5 y-2 justify-end mt-3">
-          <button id="btnDescargarCSV" onclick="descargarDatosCSVActual()" class="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg shadow-sm transition-all flex items-center gap-1" disabled>
-            <i class="fa-solid fa-file-csv text-xs"></i> Descargar Datos CSV
-          </button>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl p-4 shadow border border-slate-100 flex-1 flex flex-col min-h-[250px]">
-        <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2 shrink-0">
-          <div class="text-xs font-bold text-slate-700 tracking-tight flex items-center gap-1">
-            <i class="fa-solid fa-layer-group text-blue-600 text-sm"></i> Historial de Consultas:
           </div>
-          <button id="btnGuardarConsulta" onclick="guardarConsultaEnHistorial()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] px-3 py-1.5 rounded shadow transition-all flex items-center gap-1" disabled>
-            <i class="fa-solid fa-bookmark"></i> Adicionar consulta al historial
-          </button>
-        <button onclick="exportarHistorialConsultasJSON()" 
-          class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-2 py-1.5 rounded shadow transition-all flex items-center gap-1">
-          <i class="fa-solid fa-file-code text-sm"></i> Guardar Consultas (JSON)
-        </button>
         </div>
-        
-        <div class="overflow-y-auto flex-1 max-h-[160px] pr-1">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="text-slate-400 border-b border-slate-200 font-bold tracking-wider text-[10px]">
-                <th class="pb-2 pl-2">#</th>
-                <th class="pb-2">TR</th>
-                <th class="pb-2">Profundidad</th>
-                <th class="pb-2">Fecha insertada</th>
-                <th class="pb-2 text-blue-600">Servicio WMS solicitado</th>
-                <th class="pb-2 text-center">Acción</th>
-              </tr>
-            </thead>
-            <tbody id="historialContenido" class="divide-y divide-slate-100 bg-white">
-              <tr id="historialVacio">
-                <td colspan="6" class="text-center text-slate-400 py-6 italic text-xs">Ninguna consulta guardada en esta sesión.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>        
-      </div>
-
-      <div class="bg-slate-900 rounded-xl p-2.5 text-green-400 font-mono text-[10px] leading-relaxed shadow-inner shrink-0">
-        <span class="text-slate-500 block font-sans font-bold uppercase text-[9px]">Fin de consulta - Último Evento WMS:</span>
-        <div id="logConsole" class="text-yellow-400">> Esperando ejecución del flujo...</div>
       </div>
 
     </div>
   </div>
 
   <footer class="h-12 border-t border-slate-800 bg-[#0f172a]/95 flex items-center justify-center z-50 m-2 rounded-xl shrink-0 shadow-lg text-white">
-    <div class="flex items-center gap-6"><span class="text-[10px] text-slate-400 font-bold tracking-wider">Autores:</span>
+    <div class="flex items-center gap-6">
+      <span class="text-[10px] text-slate-400 font-bold tracking-wider">Autores:</span>
       <div class="flex items-center gap-6 h-6">
-        <img src="img/logo_senamhi.png" alt="SENAMHI" class="h-full w-auto object-contain brightness-0 invert opacity-75">
-        <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="h-full w-auto object-contain brightness-0 invert opacity-75">
-        <img src="img/logo_sei.png" alt="SEI" class="h-6 w-auto object-contain brightness-0 invert opacity-75">
-        <img src="img/logo_BID.png" alt="BID" class="h-5 w-auto object-contain brightness-0 invert opacity-75">
+        <img src="img/logo_senamhi.png" alt="SENAMHI" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/Logo_MDPRyA.png" alt="MDPRyA" class="h-full w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/logo_sei.png" alt="SEI" class="h-6 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
+        <img src="img/logo_BID.png" alt="BID" class="h-5 w-auto object-contain brightness-0 invert opacity-75 hover:opacity-100 transition-all">
       </div>
     </div>
   </footer>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="areas_inundacion.js"></script>
 </body>
 </html>
