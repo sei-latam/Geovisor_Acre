@@ -55,7 +55,7 @@ async function cargarCapasDesdeJSON() {
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-cloud-sun text-blue-500 text-xs"></i>
           <div class="flex flex-col">
-            <span class="text-[11px] font-bold text-slate-700">dia:</span>
+            <span class="text-[11px] font-bold text-slate-700">dia (${item.plan} - ${item.depth}m):</span>
             <span class="text-[9px] text-slate-400">${item.fechaDetectada.replace('T', ' ')}</span>
           </div>
         </div>
