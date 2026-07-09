@@ -20,6 +20,7 @@ var capasDibujo = L.layerGroup().addTo(map);
 var capasPronostico = {};
 const JSON_URL = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/main/consultas.json"; 
 const GEOSERVER_BASE_URL = "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms";
+
 async function cargarCapasDesdeJSON() {
   try {
     var response = await fetch(JSON_URL);
@@ -33,6 +34,7 @@ async function cargarCapasDesdeJSON() {
       var urlObjeto = new URL(item.servicio);
       var params = new URLSearchParams(urlObjeto.search);      
       var textoCapa = params.get('layers') || "";
+      
       // Si contiene el duplicado "rio_acre_manchas:rio_acre_manchas:", lo reemplazamos por uno solo
       if (textoCapa.includes("rio_acre_manchas:rio_acre_manchas:")) {
         textoCapa = textoCapa.replace("rio_acre_manchas:rio_acre_manchas:", "rio_acre_manchas:");
@@ -41,21 +43,26 @@ async function cargarCapasDesdeJSON() {
       var chkId = `chkPronostico_${index}`;
       
       capasPronostico[chkId] = L.tileLayer.wms(GEOSERVER_BASE_URL, {
-        layers: textoCapa, // Ahora va limpio: "rio_acre_manchas:Depth_..."
+        layers: textoCapa, 
         format: 'image/png',
         transparent: true,
         version: '1.1.0',
         attribution: "GeoServer - Pronóstico"
       });
 
+      // 1. Calculamos el número de día de forma dinámica basándonos en la posición del array
+      var numeroDia = index + 1;
+
       // Crear el elemento HTML del control (Checkbox con Tailwind de tu proyecto)
       var layerRow = document.createElement('div');
       layerRow.className = "flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg shadow-sm mb-1.5";
+      
+      // 2. Modificamos la cadena de texto para renderizar "Día X (Plan - Depthm)"
       layerRow.innerHTML = `
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-cloud-sun text-blue-500 text-xs"></i>
           <div class="flex flex-col">
-            <span class="text-[11px] font-bold text-slate-700">dia (${item.plan} - ${item.depth}m):</span>
+            <span class="text-[11px] font-bold text-slate-700">Día ${numeroDia} (${item.plan} - ${item.depth}m)</span>
             <span class="text-[9px] text-slate-400">${item.fechaDetectada.replace('T', ' ')}</span>
           </div>
         </div>
