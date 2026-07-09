@@ -2,13 +2,19 @@
   {
     "plan": "TR10",
     "depth": "12.00",
-    "fechaDetectada": "2026-07-09T18:59",
+    "fechaDetectada": "2026-07-15T00:07",
     "servicio": "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms?service=WMS&version=1.1.0&request=GetMap&layers=rio_acre_manchas:rio_acre_manchas:Depth_21_19APR2026_05_00_00_TR10&styles=estilo_inundacion&format=image/png&transparent=true"
   },
   {
     "plan": "TR2023",
-    "depth": "12.00",
-    "fechaDetectada": "2026-07-15T17:59",
-    "servicio": "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms?service=WMS&version=1.1.0&request=GetMap&layers=rio_acre_manchas:rio_acre_manchas:Depth_165_20APR2026_18_00_00_TR2023&styles=estilo_inundacion&format=image/png&transparent=true"
+    "depth": "9.00",
+    "fechaDetectada": "2026-07-16T23:08",
+    "servicio": "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms?service=WMS&version=1.1.0&request=GetMap&layers=rio_acre_manchas:rio_acre_manchas:Depth_14_19APR2026_04_15_00_TR2023&styles=estilo_inundacion&format=image/png&transparent=true"
+  },
+  {
+    "plan": "TR10",
+    "depth": "9.00",
+    "fechaDetectada": "2026-07-17T23:09",
+    "servicio": "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms?service=WMS&version=1.1.0&request=GetMap&layers=rio_acre_manchas:rio_acre_manchas:Depth_10_19APR2026_02_15_00_TR10&styles=estilo_inundacion&format=image/png&transparent=true"
   }
 ]
