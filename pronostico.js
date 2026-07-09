@@ -13,12 +13,12 @@ var capasMapasBase = {
 var esriImágenes = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}");
 var esriEtiquetas = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}");
 var grupoSateliteHibrido = L.layerGroup([esriImágenes, esriEtiquetas]);
-
+//query user
 var mapaBaseActivoActual = grupoSateliteHibrido;
 mapaBaseActivoActual.addTo(map);
 var capasDibujo = L.layerGroup().addTo(map);
 var capasPronostico = {};
-const JSON_URL = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/main/consultas.json";
+const JSON_URL = "https://raw.githubusercontent.com/sei-latam/Geovisor_Acre/main/consultas.json"; 
 const GEOSERVER_BASE_URL = "http://acre.senamhi.gob.bo/geoserver/rio_acre_manchas/wms";
 async function cargarCapasDesdeJSON() {
   try {
