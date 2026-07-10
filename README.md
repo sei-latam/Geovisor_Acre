@@ -103,7 +103,7 @@ Exportación de selecciones en CSV
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 ### Frontend
 | Tecnología | Versión | Propósito |
