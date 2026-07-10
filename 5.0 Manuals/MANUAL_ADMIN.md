@@ -317,7 +317,7 @@ rm -rf /var/cache/geoserver/*
 
 ---
 
-## 🗄️ Administración de Base de Datos
+## Administración de Base de Datos
 
 ### 4.1 Conexión y Acceso
 
