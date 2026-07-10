@@ -197,8 +197,6 @@ COMPONENTES:
    └─ Logs WMS
 ```
 
-### 6. **app.js - Motor Principal (20.8 KB)**
-
 **Configuración Global:**
 - 7 Mapas Base (ESRI, Google, OpenStreetMap)
 - GeoServer: coast_wind_data workspace
