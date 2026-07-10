@@ -1,3 +1,57 @@
+## ⚠️​ Importante - Actualización e inserción de nuevos datos en `Pronósticos` basado en `Areas_inundacion`⚠️​
+
+## Scripts y codigo base:
+
+### Modulo de areas_inundacion  
+- **HTML**: [https://github.com/sei-latam/Geovisor_Acre/blob/main/pronostico.html](https://github.com/sei-latam/Geovisor_Acre/blob/main/pronostico.html)
+- **JavaScript**: [https://github.com/sei-latam/Geovisor_Acre/blob/main/pronostico.js](https://github.com/sei-latam/Geovisor_Acre/blob/main/pronostico.js)
+
+### Archivo JSON
+- **JSON**: [https://github.com/sei-latam/Geovisor_Acre/blob/main/consultas.json](https://github.com/sei-latam/Geovisor_Acre/blob/main/consultas.json)
+
+### Modulo de pronosticos
+- **HTML**: [https://github.com/sei-latam/Geovisor_Acre/blob/main/areas_inundacion.html](https://github.com/sei-latam/Geovisor_Acre/blob/main/areas_inundacion.html)
+- **JavaScript**: [https://github.com/sei-latam/Geovisor_Acre/blob/main/areas_inundacion.js](https://github.com/sei-latam/Geovisor_Acre/blob/main/areas_inundacion.js)
+
+### Pasos a seguir
+
+#### **Instrucciones para crear consultas en el módulo Areas_inundacion**
+```
+Pronosticador Ingresa Depth(m)
+    ↓
+Selección de escenario TR 
+    ↓
+Inserción de una fecha (dd/mm/yyy)
+    ↓
+Clic en el botón de "adicional consulta al historial"
+    ↓
+Clic en el botón de "Guardar Consultas JSON"
+    ↓
+Descarga del archivo JSON en el repositorio GitHub del proyecto
+```
+
+#### **Instrucciones para cargar el archivo de consultas.json**
+
+```
+Upload y commit del archivo JSON "consultas.json" dentro del repositorio GitHub
+    ↓
+Reivisión del archivo "consultas.json", https://github.com/sei-latam/Geovisor_Acre/blob/main/consultas.json
+```
+
+#### **Instrucciones para desplegar las consultas.json dentro del módulo pronostico**
+
+```
+Modificar y actualizar mediante un commit sencillo, el script de pronostico.js
+    ↓
+Verificar que el commit o comentario realizado no cambie la lógica del codigo js
+    ↓
+Realizar el deploy en github pages
+    ↓
+Ingresar a la pestaña de pronostico.html y verificar los cambios realizados en consultas.json
+    ↓
+Activación o apagado de las capas de consultas realizadas en el módulo de areas_inundación.
+```
+
 # Manual de Desarrollo - Geovisor Acre
 
 ## Tabla de Contenidos
