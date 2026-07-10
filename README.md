@@ -1,18 +1,5 @@
 # Geovisor Acre - Sistema de Visualización y Análisis Geoespacial del Río Acre
 
-## Tabla de Contenidos
-1. [Descripción General](#descripción-general)
-2. [Arquitectura del Sistema](#arquitectura-del-sistema)
-3. [Stack Tecnológico](#stack-tecnológico)
-4. [Análisis de Componentes](#análisis-de-componentes)
-5. [Base de Datos](#base-de-datos)
-6. [Infraestructura Cloud](#infraestructura-cloud)
-7. [Análisis de Código](#análisis-de-código)
-8. [Problemas Identificados](#problemas-identificados)
-9. [Oportunidades de Mejora](#oportunidades-de-mejora)
-10. [Contribuciones](#contribuciones)
-11. [Licencia](#licencia)
-
 ---
 
 ## Descripción General
@@ -159,11 +146,6 @@ Propósito: Contextualización geográfica
 Características:
 - Imagen de mapas de cuenca (PNG)
 - Descripción técnica de la región
-- Estadísticas:
-  * Superficie: ~7,182 km²
-  * Longitud río: ~645 km
-  * Altitud: 177-413 msnm
-  * Clima: Tropical húmedo
 - Información sobre ecosistemas y riesgos
 ```
 
@@ -267,7 +249,6 @@ CREATE TABLE river_network (
 | data.xlsx | Excel | Datos tabulares |
 | data.tif | GeoTIFF | Raster inundación |
 | data.hdf5 | HDF5 | Series temporales |
-| Geovisor_db.qgz | QGIS | Config de capas |
 
 ---
 
