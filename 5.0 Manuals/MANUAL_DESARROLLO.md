@@ -70,8 +70,7 @@ Este manual proporciona documentación técnica detallada para desarrolladores q
 │              DATABASE LAYER (GCP - Cloud SQL)                   │
 │  ┌────────────────────────────────────────────────────────────┐ │
 │  │ PostgreSQL 15+ con PostGIS 3.x                             │ │
-│  │ - Tablas: manchas_inundacion_wsel (P01-P05)               │ │
-│  │ - Índices espaciales (GiST/BRIN)                           │ │
+│  │ - Tablas: manchas_inundacion_depth                         │ │ 
 │  │ - Datos raster (.TIF comprimido)                           │ │
 │  └────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
@@ -80,11 +79,11 @@ Este manual proporciona documentación técnica detallada para desarrolladores q
 ### Flujo de Datos - Consulta Típica
 
 ```
-1. Usuario ingresa WSEL en interfaz web
+1. Usuario ingresa depth en interfaz web
    ↓
 2. Validación JavaScript (validarIngresoWSEL)
    ↓
-3. Selecciona Plan (P01-P05)
+3. Selecciona Plan/TR
    ↓
 4. Frontend genera URL de solicitud WMS
    ↓
@@ -275,7 +274,7 @@ gsutil web set -m index.html -e 404.html gs://geovisor-acre/
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Verificar WMS
 
@@ -293,7 +292,7 @@ npm test
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### GeoServer no responde
 
