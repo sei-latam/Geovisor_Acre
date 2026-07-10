@@ -15,7 +15,7 @@
 
 ### Pasos a seguir
 
-#### **Instrucciones para crear consultas en el módulo Areas_inundacion**
+#### **Instrucciones para crear consultas en el módulo Areas_inundacion.html**
 ```
 Pronosticador Ingresa Depth(m)
     ↓
@@ -38,7 +38,7 @@ Upload y commit del archivo JSON "consultas.json" dentro del repositorio GitHub
 Reivisión del archivo "consultas.json", https://github.com/sei-latam/Geovisor_Acre/blob/main/consultas.json
 ```
 
-#### **Instrucciones para desplegar las consultas.json dentro del módulo pronostico**
+#### **Instrucciones para desplegar las consultas.json dentro del módulo pronostico.html**
 
 ```
 Modificar y actualizar mediante un commit sencillo, el script de pronostico.js
