@@ -1,0 +1,325 @@
+# Actualizar los repositorios y paquetes del sistema
+sudo apt update && sudo apt upgrade -y
+
+# Buscar y verificar versiones de Java disponibles
+sudo apt update && apt search openjdk- | grep jre-headless
+
+# Instalar Java 17 Runtime, JRE por defecto y la herramienta unzip
+sudo apt install openjdk-17-jre-headless default-jre unzip -y
+
+# Verificar que Java se instaló correctamente
+java -version
+
+# Crear el directorio para GeoServer y acceder a él
+sudo mkdir /usr/share/geoserver
+cd /usr/share/geoserver
+
+# Descargar GeoServer 2.24.2
+sudo wget https://sourceforge.net/projects/geoserver/files/GeoServer/2.24.2/geoserver-2.24.2-bin.zip
+
+# Descomprimir el archivo descargado
+sudo unzip geoserver-2.24.2-bin.zip
+
+# Eliminar el archivo .zip para no ocupar espacio innecesario
+sudo rm geoserver-2.24.2-bin.zip
+
+# Configurar variables de entorno y permisos
+
+echo "export GEOSERVER_HOME=/usr/share/geoserver" >> ~/.bashrc
+source ~/.bashrc
+
+chmod +x /usr/share/geoserver/bin/startup.sh
+chmod +x /usr/share/geoserver/bin/shutdown.sh
+
+cd /usr/share/geoserver/bin/
+
+nohup ./startup.sh &
+tail -n 20 /usr/share/geoserver/bin/geoserver.log
+
+ss -tulnp | grep java
+
+# Subdominio 
+http://acre.senamhi.gob.bo/
+
+# Actualizar los repositorios e instalar Nginx
+sudo apt update
+sudo apt install nginx -y
+
+# Asegurar que Nginx inicie automáticamente con el servidor y esté corriendo
+systemctl enable nginx
+systemctl start nginx
+
+nano /etc/nginx/sites-available/acre.senamhi.gob.bo
+
+server {
+    listen 80;
+    server_name acre.senamhi.gob.bo;
+
+    # Captura explícita de la ruta para GeoServer
+    location /geoserver {
+        proxy_pass http://127.0.0.1:8080/geoserver;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Redirección interna hacia el subdominio oficial
+        proxy_redirect http://127.0.0.1:8080/geoserver http://acre.senamhi.gob.bo/geoserver;
+
+        # Optimización SIG
+        proxy_buffer_size          128k;
+        proxy_buffers              4 256k;
+        proxy_busy_buffers_size    256k;
+        proxy_connect_timeout      90s;
+        proxy_send_timeout         90s;
+        proxy_read_timeout         90s;
+    }
+
+    # Carpeta raíz por si ponen un frontend en el futuro
+    location / {
+        root /var/www/html;
+        index index.html index.htm;
+        try_files $uri $uri/ =404;
+    }
+}
+
+
+# Crear el enlace simbólico para activar el sitio
+ln -s /etc/nginx/sites-available/acre.senamhi.gob.bo /etc/nginx/sites-enabled/
+
+# Eliminar la configuración por defecto de Nginx para que no tape tu dominio
+rm /etc/nginx/sites-enabled/default
+
+# Probar que la sintaxis esté perfecta
+nginx -t
+
+systemctl restart nginx
+
+#Asegurar las URLs en los archivos internos de GeoServer
+nano /usr/share/geoserver/data_dir/global.xml
+
+#buscar las siguientes partes y modificar donde dice ProxyBaseUrl
+
+<verbose>false</verbose>
+  <verboseExceptions>false</verboseExceptions>
+  <proxyBaseUrl>http://acre.senamhi.gob.bo/geoserver</proxyBaseUrl>
+  <metadata>
+    <map>
+
+# Volver a iniciar el geoserver
+pkill -f geoserver
+pkill -f jetty
+cd /usr/share/geoserver/bin/
+nohup ./startup.sh > geoserver.log 2>&1 &
+
+
+nano /usr/share/geoserver/bin/startup.sh
+
+#Reemplazar la siguiente linea con la que inicia con exec "$_RUNJAVA....
+ 
+exec "$_RUNJAVA" --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED --add-opens=java.desktop/sun.awt=ALL-UNNAMED --add-exports=java.desktop/sun.java2d=ALL-UNNAMED --add-exports=java.desktop/sun.java2d.pipe=ALL-UNNAMED -DGEOSERVER_DATA_DIR="$GEOSERVER_DATA_DIR" -Djava.awt.headless=true -Djetty.base="$GEOSERVER_HOME" -Djetty.home="$GEOSERVER_HOME" -Djetty.logging.dir="$GEOSERVER_HOME/logs" -jar "$GEOSERVER_HOME/start.jar"
+
+#Reiniciar el geoserver
+
+cd /usr/share/geoserver/bin/
+pkill -f geoserver
+pkill -f jetty
+nohup ./startup.sh > geoserver.log 2>&1 &
+
+
+#Abrir una Nueva terminal en cmd o en powershell y situarse en la carpeta con los archivos .zip
+
+cd C:\Users\Carlos Andres\Desktop\Geovisor_Rio_Acre\Output_HEC_RAS_Rasters\
+
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Output_HEC_RAS_Rasters/Depth_TR02.zip" root@acre.senamhi.gob.bo:/root/
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Output_HEC_RAS_Rasters/Depth_TR10.zip" root@acre.senamhi.gob.bo:/root/
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Output_HEC_RAS_Rasters/Depth_TR50.zip" root@acre.senamhi.gob.bo:/root/
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Output_HEC_RAS_Rasters/Depth_TR100.zip" root@acre.senamhi.gob.bo:/root/
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Output_HEC_RAS_Rasters/Depth_TR2023.zip" root@acre.senamhi.gob.bo:/root/
+
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Rasters_inundacion_sentinel1/Evento_20230325_smooth27_2.tif" root@acre.senamhi.gob.bo:/root/
+scp "C:/Users/Carlos Andres/Desktop/Geovisor_Rio_Acre/Rasters_inundacion_sentinel1/Evento_20240224_smooth27_2.tif" root@acre.senamhi.gob.bo:/root/
+
+#visualizar los archivos cargados 
+dir
+
+# Retornar al directorio raiz por si acaso
+cd ~/
+
+
+for tr in tr02 tr10 tr50 tr100 tr2023; do
+    # Formatear el nombre del archivo ZIP esperado convirtiendo la variable 'tr' a mayúsculas (ej: Depth_TR10.zip)
+    zip_name="Depth_$(echo $tr | tr '[:lower:]' '[:upper:]').zip"
+    
+    # Crear el directorio físico destino en la estructura de GeoServer si no existe
+    mkdir -p /usr/share/geoserver/manchas_inundacion/$tr
+    
+    # Entrar al directorio recién creado
+    cd /usr/share/geoserver/manchas_inundacion/$tr
+    
+    # Si el archivo comprimido existe en el Home, moverlo al directorio actual y descomprimirlo sobrescribiendo (-o)
+    [ -f ~/$zip_name ] && mv ~/$zip_name . && unzip -o $zip_name
+done
+
+cd ~/
+
+cd /usr/share/geoserver/manchas_inundacion/tr02/
+rm Depth_TR02.zip
+
+cd /usr/share/geoserver/manchas_inundacion/tr10/
+rm Depth_TR10.zip
+
+cd /usr/share/geoserver/manchas_inundacion/tr50/
+rm Depth_TR50.zip
+
+cd /usr/share/geoserver/manchas_inundacion/tr100/
+rm Depth_TR100.zip
+
+cd /usr/share/geoserver/manchas_inundacion/tr2023/
+rm Depth_TR2023.zip
+
+# Cambiar el propietario de forma recursiva al usuario del servidor web para que GeoServer pueda leer los archivos
+chown -R www-data:www-data /usr/share/geoserver/manchas_inundacion/
+
+# Asignar permisos estándar de lectura, escritura y ejecución a la estructura de carpetas
+chmod -R 755 /usr/share/geoserver/manchas_inundacion/
+
+apt update && apt install curl -y
+
+USER="admin"
+PASS="geoserver"
+WS="rio_acre_manchas"
+
+curl -s -u "$USER:$PASS" -X POST -H "Content-type: application/xml" -d "<workspace><name>$WS</name></workspace>" "http://localhost:8080/geoserver/rest/workspaces"
+
+# Definición de variables globales de entorno para la automatización de la API
+USER="admin"
+PASS="geoserver"
+WS="rio_acre_manchas"
+BASE_DIR="/usr/share/geoserver/manchas_inundacion"
+
+# Recorrer cada directorio de periodo de retorno
+for dir in tr02 tr10 tr50 tr100 tr2023; do
+    # Continuar con la siguiente iteración si el directorio físico no existe
+    [ -d "$BASE_DIR/$dir" ] || continue
+    cd "$BASE_DIR/$dir"
+    
+    # Buscar todos los archivos con extensión .tif dentro de la carpeta
+    for file in *.tif; do
+        [ -e "$file" ] || break
+        layer_name="${file%.tif}"
+        
+        # Enviar petición HTTP POST a la API REST construyendo un almacén tipo GeoTIFF
+        curl -s -u "$USER:$PASS" -X POST -H "Content-type: application/xml" -d "<coverageStore><name>$layer_name</name><type>GeoTIFF</type><enabled>true</enabled><workspace>$WS</workspace><url>file:$BASE_DIR/$dir/$file</url></coverageStore>" "http://localhost:8080/geoserver/rest/workspaces/$WS/coveragestores"
+        
+        # Respiro para que GeoServer guarde en disco sin saturarse
+        sleep 0.3
+    done
+done
+
+
+# Bucle de publicación masiva de coberturas cartográficas
+for dir in tr02 tr10 tr50 tr100 tr2023; do
+    [ -d "$BASE_DIR/$dir" ] || continue
+    cd "$BASE_DIR/$dir"
+    for file in *.tif; do
+        [ -e "$file" ] || break
+        layer_name="${file%.tif}"
+        
+        # Enviar petición POST para activar la capa estableciendo las proyecciones y políticas
+        curl -s -u "$USER:$PASS" -X POST -H "Content-type: application/xml" -d "<coverage><name>$layer_name</name><nativeName>$layer_name</nativeName><title>$layer_name</title><nativeCRS>EPSG:32719</nativeCRS><srs>EPSG:4326</srs><projectionPolicy>REPROJECT_TO_DECLARED</projectionPolicy><enabled>true</enabled></coverage>" "http://localhost:8080/geoserver/rest/workspaces/$WS/coveragestores/$layer_name/coverages"
+        
+        # Pausa de seguridad para sincronización del catálogo
+        sleep 0.3
+    done
+done
+
+
+# Crear un directorio temporal para la edición del archivo XML de estilos
+mkdir -p $HOME/estilos_sld
+cd $HOME/estilos_sld
+
+# Escribir la estructura estándar OGC del archivo SLD para la rampa de colores del raster (Depth)
+cat << 'EOF' > estilo_inundacion.sld
+<?xml version="1.0" encoding="UTF-8"?>
+<StyledLayerDescriptor version="1.0.0" xmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd">
+  <NamedLayer>
+   <Name>estilo_inundacion</Name>
+   <UserStyle>
+     <Title>Rampa de Inundacion (Depth)</Title>
+     <FeatureTypeStyle>
+       <Rule>
+          <RasterSymbolizer>
+            <ColorMap type="ramp">
+              <ColorMapEntry color="#ffffff" quantity="0" label="0 metros" opacity="0.0"/>
+              <ColorMapEntry color="#a6bddb" quantity="2" label="2 metros" opacity="0.6"/>
+              <ColorMapEntry color="#3690c0" quantity="6" label="6 metros" opacity="0.7"/>
+              <ColorMapEntry color="#023858" quantity="12" label="12 metros" opacity="0.8"/>
+              <ColorMapEntry color="#4a1486" quantity="17" label="17 metros" opacity="0.85"/>
+            </ColorMap>
+          </RasterSymbolizer>
+       </Rule>
+     </FeatureTypeStyle>
+   </UserStyle>
+  </NamedLayer>
+</StyledLayerDescriptor>
+EOF
+
+
+# Configurar parámetros de acceso local
+USER="admin"
+PASS="geoserver"
+WORKSPACE="rio_acre_manchas"
+
+# 1. Registrar el nombre del nuevo estilo dentro del Workspace en GeoServer
+curl -u "$USER:$PASS" -X POST -H "Content-type: application/xml" -d "<style><name>estilo_inundacion</name><filename>estilo_inundacion.sld</filename></style>" "http://localhost:8080/geoserver/rest/workspaces/$WORKSPACE/styles"
+
+# 2. Enviar el archivo SLD generado como cuerpo de la petición (usando @) para escribir la definición de la rampa de color
+curl -u "$USER:$PASS" -X PUT -H "Content-type: application/vnd.ogc.sld+xml" -d @"estilo_inundacion.sld" "http://localhost:8080/geoserver/rest/workspaces/$WORKSPACE/styles/estilo_inundacion"
+
+
+USER="admin"
+PASS="geoserver"
+WORKSPACE="rio_acre_manchas"
+BASE_DIR="/usr/share/geoserver/manchas_inundacion"
+
+# Recorrer las subcarpetas del sistema de archivos
+for dir in tr02 tr10 tr50 tr100 tr2023; do
+    if [ -d "$BASE_DIR/$dir" ]; then
+        cd "$BASE_DIR/$dir"
+        for file in *.tif; do
+            if [ -e "$file" ]; then
+                layer_name="${file%.tif}"
+                
+                # Modificar la capa para forzar el uso de la rampa 'estilo_inundacion'
+                curl -s -u "$USER:$PASS" -X PUT -H "Content-type: application/xml" -d "<layer><defaultStyle><name>estilo_inundacion</name><workspace>$WORKSPACE</workspace></defaultStyle></layer>" "http://localhost:8080/geoserver/rest/layers/$WORKSPACE:$layer_name"                
+                sleep 0.2
+            fi
+        done
+    fi
+done
+
+
+# Si por algun motivo, el proceso queda mal o existe algun error, ejecutar lo siguiente:
+
+
+# Variables del entorno actual a eliminar
+USER="admin"
+PASS="geoserver"
+WS="rio_acre_manchas"
+
+# 1. Iterar sobre todos los almacenes de coberturas (coveragestores) existentes en el Workspace
+for n in $(curl -s -u "$USER:$PASS" -X GET "http://localhost:8080/geoserver/rest/workspaces/$WS/coveragestores.json" | grep -oP '"name":"\K[^"]*'); do
+    
+    # Eliminar en cascada la Capa (Layer) expuesta en WMS
+    curl -s -u "$USER:$PASS" -X DELETE "http://localhost:8080/geoserver/rest/layers/$WS:$n?recurse=true" >/dev/null
+    
+    # Eliminar el recurso de Cobertura (Coverage) interno
+    curl -s -u "$USER:$PASS" -X DELETE "http://localhost:8080/geoserver/rest/workspaces/$WS/coveragestores/$n/coverages/$n?recurse=true" >/dev/null
+    
+    # Eliminar el Almacén de Datos (CoverageStore) físico del mapa de GeoServer
+    curl -s -u "$USER:$PASS" -X DELETE "http://localhost:8080/geoserver/rest/workspaces/$WS/coveragestores/$n?recurse=true" >/dev/null
+done
+
+# 2. Eliminar el Workspace completo y sus estilos asociados de raíz
+curl -s -u "$USER:$PASS" -X DELETE "http://localhost:8080/geoserver/rest/workspaces/$WS?recurse=true" >/dev/null

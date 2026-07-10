@@ -34,8 +34,7 @@ async function cargarCapasDesdeJSON() {
       var urlObjeto = new URL(item.servicio);
       var params = new URLSearchParams(urlObjeto.search);      
       var textoCapa = params.get('layers') || "";
-      
-      // Si contiene el duplicado "rio_acre_manchas:rio_acre_manchas:", lo reemplazamos por uno solo
+
       if (textoCapa.includes("rio_acre_manchas:rio_acre_manchas:")) {
         textoCapa = textoCapa.replace("rio_acre_manchas:rio_acre_manchas:", "rio_acre_manchas:");
       }
@@ -50,14 +49,11 @@ async function cargarCapasDesdeJSON() {
         attribution: "GeoServer - Pronóstico"
       });
 
-      // 1. Calculamos el número de día de forma dinámica basándonos en la posición del array
       var numeroDia = index + 1;
 
-      // Crear el elemento HTML del control (Checkbox con Tailwind de tu proyecto)
       var layerRow = document.createElement('div');
       layerRow.className = "flex items-center justify-between p-2 bg-white border border-slate-200 rounded-lg shadow-sm mb-1.5";
       
-      // 2. Modificamos la cadena de texto para renderizar "Día X (Plan - Depthm)"
       layerRow.innerHTML = `
         <div class="flex items-center gap-2">
           <i class="fa-solid fa-cloud-sun text-blue-500 text-xs"></i>
@@ -72,7 +68,6 @@ async function cargarCapasDesdeJSON() {
         </label>
       `;
 
-      // Escuchador de eventos para encender/apagar capas
       layerRow.querySelector('input').addEventListener('change', function(e) {
         if(e.target.checked) {
           capasPronostico[chkId].addTo(map);
@@ -151,7 +146,6 @@ function toggleLeyenda() { toggleWidget('panelLeyenda'); }
 function volverAlHome() { map.setView([-11.018, -68.752], 13); }
 function obtenerUbicacionActual() { map.locate({setView: true, maxZoom: 15}); }
 
-// Buscador Nominatim
 var timerBusqueda;
 function buscarSugerencias() {
   clearTimeout(timerBusqueda);
@@ -193,18 +187,15 @@ async function ejecutarBusquedaDirecta() {
   } catch(e) { console.error(e); }
 }
 
-// Inicialización de herramientas de dibujo
 var herramientaActiva = null;
 function activarHerramientaDibujo(tipo) {
   console.log("Herramienta activa: " + tipo);
-  // Implementación básica para evitar errores de llamado en los botones del HTML
 }
 function limpiarDibujos() {
   capasDibujo.clearLayers();
   document.getElementById('statusDibujo').innerText = "Ninguna herramienta activa";
 }
 
-// Ejecución al iniciar la página
 document.addEventListener("DOMContentLoaded", function() {
   cargarCapasDesdeJSON();
 });
