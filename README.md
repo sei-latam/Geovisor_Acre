@@ -1,6 +1,6 @@
-# 🌍 Geovisor Acre - Sistema de Visualización y Análisis Geoespacial del Río Acre
+# Geovisor Acre - Sistema de Visualización y Análisis Geoespacial del Río Acre
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 1. [Descripción General](#descripción-general)
 2. [Arquitectura del Sistema](#arquitectura-del-sistema)
 3. [Stack Tecnológico](#stack-tecnológico)
@@ -15,9 +15,9 @@
 
 ---
 
-## 📖 Descripción General
+## Descripción General
 
-**Geovisor Acre** es un sistema integral de visualización y análisis geoespacial desarrollado colaborativamente por múltiples instituciones para monitorear y analizar eventos de inundación en la cuenca del Río Acre, una región amazónica compartida por Bolivia, Brasil y Perú.
+**Geovisor Acre** es un sistema integral de visualización y análisis geoespacial desarrollado colaborativamente por múltiples instituciones para monitorear y analizar eventos de inundación en la cuenca del Río Acre.
 
 ### Propósito
 - Visualizar datos hidrometeorológicos e hidrológicos en tiempo real
@@ -27,14 +27,14 @@
 - Facilitar la toma de decisiones en gestión de riesgo de desastres
 
 ### Instituciones Participantes
-- 🌩️ **SENAMHI**: Servicio Nacional de Meteorología e Hidrología
-- 🌾 **MDPRyA**: Ministerio de Desarrollo Productivo, Rural y Agricultura
-- 🌍 **SEI**: Stockholm Environment Institute
-- 🏦 **BID**: Banco Interamericano de Desarrollo
+- **SENAMHI**: Servicio Nacional de Meteorología e Hidrología
+- **MDPRyA**: Ministerio de Desarrollo Productivo, Rural y Agricultura
+- **SEI**: Stockholm Environment Institute
+- **BID**: Banco Interamericano de Desarrollo
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ### Diseño General
 
@@ -52,7 +52,7 @@
 │  ┌─────────────────────────────────────────────────────────┐   │
 │  │  app.js - Controlador Principal de Interacciones        │   │
 │  │  - Gestión de capas geoespaciales (WMS)                 │   │
-│  │  - Procesamiento de consultas (WSEL)                    │   │
+│  │  - Procesamiento de consultas (Depth)                   │   │
 │  │  - Análisis temporal e histórico                        │   │
 │  │  - Herramientas de dibujo y medición                    │   │
 │  └─────────────────────────────────────────────────────────┘   │
@@ -71,7 +71,7 @@
 
 #### 1. **Consulta de Inundación Típica**
 ```
-Usuario Ingresa WSEL (m)
+Usuario Ingresa Depth (m)
     ↓
 Validación en JavaScript
     ↓
@@ -136,7 +136,7 @@ Exportación de selecciones en CSV
 
 ---
 
-## 📁 Análisis de Componentes
+## Análisis de Componentes
 
 ### 1. **Página Principal (index.html / index.css)**
 ```
@@ -208,8 +208,8 @@ COMPONENTES:
    └─ Búsqueda
 
 2. Panel de Consultas (30%)
-   ├─ Entrada WSEL
-   ├─ Selección de Plan
+   ├─ Entrada Depth
+   ├─ Selección de Plan/TR
    ├─ Gráfica temporal
    ├─ Historial
    └─ Logs WMS
@@ -231,7 +231,7 @@ COMPONENTES:
 
 ---
 
-## 🗄️ Base de Datos
+## Base de Datos
 
 ### Estructura PostgreSQL
 
@@ -271,7 +271,7 @@ CREATE TABLE river_network (
 
 ---
 
-## ☁️ Infraestructura Cloud
+## Infraestructura Cloud
 
 ### GCP Services
 - **GeoServer**: geoserver.coast-wind.org
@@ -286,57 +286,15 @@ CREATE TABLE river_network (
 
 ---
 
-## 🔍 Análisis de Código
+## Análisis de Código
 
-### ✅ Buenas Prácticas
+### Buenas Prácticas
 - Separación de responsabilidades
 - Validación de entrada
 - Librerías especializadas
 - Funciones bien nombradas
 
-### ⚠️ Problemas Identificados
-
-1. **Manejo de Errores Deficiente**
-   - Falta feedback al usuario en fallos
-   - Sin reintentos automáticos
-
-2. **Validación Insuficiente**
-   - WSEL solo valida si es número
-   - Sin sanitización XSS
-
-3. **Variables Globales Excesivas (14+)**
-   - Difícil de debuggear
-   - Conflictos de namespace
-
-4. **Falta de Documentación**
-   - Sin comentarios en código
-   - Sin JSDoc
-
-5. **XSS Vulnerabilities**
-   - innerHTML con datos no sanitizados
-
-6. **Código Duplicado**
-   - Búsqueda geocodificación repetida
-   - Estilos en dos archivos
-
-7. **Dependencias Remotas sin Fallback**
-   - Si CDN falla, app se rompe
-
-8. **Performance Issues**
-   - Sin cache de curvas
-   - Chart.js reinitializado siempre
-
-9. **Accesibilidad Limitada**
-   - Sin aria-labels
-   - Contraste insuficiente
-
-10. **Estado Compartido Complejo**
-    - Múltiples variables entrelazadas
-    - Sincronización poco clara
-
----
-
-## 💡 Oportunidades de Mejora
+## Oportunidades de Mejora
 
 ### Funcionales
 1. Historial persistente (localStorage)
@@ -371,7 +329,7 @@ CREATE TABLE river_network (
 
 ---
 
-## 📊 Historial de Commits
+## Historial de Commits
 
 - **Período**: Junio 5-30, 2026 (25 días)
 - **Total**: ~30 commits
@@ -386,7 +344,7 @@ CREATE TABLE river_network (
 
 ---
 
-## 🤝 Contribuciones
+## Contribuciones
 
 1. **Fork** repositorio
 2. **Clone** localmente
@@ -397,17 +355,11 @@ CREATE TABLE river_network (
 
 ---
 
-## 📄 Licencia
+## Licencia
 
 **GPL-3.0** - Licencia Pública General GNU v3.0
 
-- ✅ Uso comercial, distribución, modificación
-- ⚠️ Debe incluir aviso de licencia
-- ⚠️ Código modificado bajo GPL-3.0
-
----
-
-## 📞 Contacto
+## Contacto
 
 - **GitHub**: [sei-latam/Geovisor_Acre](https://github.com/sei-latam/Geovisor_Acre)
 - **Sitio Web**: [https://sei-latam.github.io/Geovisor_Acre/](https://sei-latam.github.io/Geovisor_Acre/)
