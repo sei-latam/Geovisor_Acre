@@ -1,4 +1,4 @@
-# 👨‍💼 Manual de Administración - Geovisor Acre
+# Manual de Administración - Geovisor Acre
 
 ## Tabla de Contenidos
 1. [Introducción](#introducción)
@@ -14,7 +14,7 @@
 
 ---
 
-## 🎯 Introducción
+## Introducción
 
 ### Propósito
 Este manual está dirigido a administradores de sistemas responsables de:
@@ -33,7 +33,7 @@ Este manual está dirigido a administradores de sistemas responsables de:
 
 ---
 
-## 👥 Roles y Responsabilidades
+## Roles y Responsabilidades
 
 ### Administrador de Infraestructura (DevOps)
 - **Responsable**: Disponibilidad de VM, networking, seguridad
@@ -72,7 +72,7 @@ Este manual está dirigido a administradores de sistemas responsables de:
 
 ---
 
-## 🖥️ Administración de Infraestructura
+## Administración de Infraestructura
 
 ### 2.1 Gestión de Instancias Compute Engine
 
@@ -172,7 +172,7 @@ gcloud compute firewall-rules describe allow-http
 
 ---
 
-## 🗺️ Administración de GeoServer
+## Administración de GeoServer
 
 ### 3.1 Acceso y Autenticación
 
@@ -261,11 +261,11 @@ En GUI de GeoServer:
           <RasterSymbolizer>
             <Opacity>0.75</Opacity>
             <ColorMap type="intervals">
-              <ColorMapEntry color="#0000FF" quantity="0" label="Sin inundación"/>
-              <ColorMapEntry color="#00FF00" quantity="1" label="Inundado leve"/>
-              <ColorMapEntry color="#FFFF00" quantity="2" label="Inundado moderado"/>
-              <ColorMapEntry color="#FF6600" quantity="3" label="Inundado fuerte"/>
-              <ColorMapEntry color="#FF0000" quantity="4" label="Inundado extremo"/>
+              <ColorMapEntry color="#0000FF" quantity="0" label=".."/>
+              <ColorMapEntry color="#00FF00" quantity="1" label=".."/>
+              <ColorMapEntry color="#FFFF00" quantity="2" label=".."/>
+              <ColorMapEntry color="#FF6600" quantity="3" label=".."/>
+              <ColorMapEntry color="#FF0000" quantity="4" label=".."/>
             </ColorMap>
           </RasterSymbolizer>
         </Rule>
@@ -397,7 +397,7 @@ WHERE schemaname = 'geovisor_data';
 
 ---
 
-## 📊 Monitoreo y Mantenimiento
+## Monitoreo y Mantenimiento
 
 ### 5.1 Dashboard de Monitoreo
 
@@ -458,7 +458,7 @@ gcloud alpha monitoring policies create \
 
 ---
 
-## 💾 Respaldo y Recuperación
+## Respaldo y Recuperación
 
 ### 6.1 Backup de Base de Datos
 
@@ -525,7 +525,7 @@ gsutil cp geoserver_backup_*.tar.gz gs://geovisor-backups/
 
 ---
 
-## 🔐 Seguridad
+## Seguridad
 
 ### 7.1 Configuración SSL/TLS
 
@@ -579,7 +579,7 @@ grep "Authentication" /opt/geoserver-2.28.x/data_dir/logs/geoserver.log
 
 ---
 
-## 🚨 Procedimientos de Emergencia
+## Procedimientos de Emergencia
 
 ### 8.1 Servicio GeoServer Caído
 
@@ -634,22 +634,6 @@ sudo systemctl restart postgresql
 ```
 
 ---
-
-## 📞 Contactos
-
-### Equipo Técnico
-
-| Rol | Nombre | Email | Teléfono |
-|-----|--------|-------|----------|
-| Administrador Infraestructura | Carlos Mendez | carlos.mendez@unesp.br | +55 XX XXXXX |
-| Administrador GeoServer | SEI Team | info@sei-latam.org | - |
-| DBA | SENAMHI Tech | tech@senamhi.gob.pe | - |
-
-### Escalación
-
-1. **Nivel 1**: Administrador local (horario laboral)
-2. **Nivel 2**: Equipo SEI (24h)
-3. **Nivel 3**: Proveedor GCP (Enterprise support)
 
 ### Recursos
 

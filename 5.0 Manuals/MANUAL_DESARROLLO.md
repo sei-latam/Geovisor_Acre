@@ -1,4 +1,4 @@
-# 📖 Manual de Desarrollo - Geovisor Acre
+# Manual de Desarrollo - Geovisor Acre
 
 ## Tabla de Contenidos
 1. [Introducción](#introducción)
@@ -14,7 +14,7 @@
 
 ---
 
-## 🎯 Introducción
+## Introducción
 
 ### Propósito
 Este manual proporciona documentación técnica detallada para desarrolladores que deseen:
@@ -38,7 +38,7 @@ Este manual proporciona documentación técnica detallada para desarrolladores q
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 ### Diseño End-to-End (E2E)
 
@@ -95,7 +95,7 @@ Este manual proporciona documentación técnica detallada para desarrolladores q
 
 ---
 
-## 🛠️ Stack Tecnológico
+## Stack Tecnológico
 
 ### Backend
 
@@ -124,7 +124,7 @@ Este manual proporciona documentación técnica detallada para desarrolladores q
 
 ---
 
-## 📦 Fase Backend
+## Fase Backend
 
 ### Extracción de Datos HDF5
 
@@ -164,7 +164,7 @@ CREATE INDEX idx_manchas_p01_raster
 
 ---
 
-## ☁️ Fase Cloud GeoServices
+## Fase Cloud GeoServices
 
 ### Configuración GCP
 
@@ -187,7 +187,7 @@ sudo unzip geoserver-2.28.x-bin.zip
 
 ---
 
-## 🎨 Fase Frontend
+## Fase Frontend
 
 ### Estructura Base HTML
 
@@ -224,7 +224,7 @@ L.control.layers(mapBases).addTo(map);
 
 ---
 
-## 🚀 Guía de Instalación
+## Guía de Instalación
 
 ### Paso 1: Clonar Repositorio
 
@@ -255,7 +255,7 @@ npx http-server
 
 ---
 
-## 📤 Deployment
+## Deployment
 
 ### GitHub Pages
 
@@ -317,7 +317,7 @@ psql -U geoserver_user -h 35.XXX.XXX.XXX -d geovisor-db
 
 ---
 
-## 📚 Referencias
+## Referencias
 
 - [GeoServer Documentation](https://geoserver.org/)
 - [PostGIS Documentation](https://postgis.net/)
